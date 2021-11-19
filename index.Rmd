@@ -1,0 +1,2618 @@
+
+---
+title: "**<br /> <br /> Empleo, salarios y transferencias**"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 1
+---
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<img src="images/logo.png\" style=\"float: right;width: 400px;\"/>')
+  });
+</script>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(plotly))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(dplyr))
+
+
+base        <- readxl::read_excel("Data/Base_motor_empleo.xls")
+base_fichas <- readxl::read_excel("Data/Base_Fichas_Técnicas.xls")
+base_fichas <- base_fichas[order(base_fichas$ID),]
+
+```
+
+<br />
+<br />
+
+<div style="text-align: justify">
+La [Unidad de Métodos y Acceso a Datos](https://umad.cienciassociales.edu.uy/) (UMAD) (FCS-UdelaR) a partir del [Observatorio Uruguay](https://umad.cienciassociales.edu.uy/observatorio-uruguay/) busca aportar a la difusión de conocimiento respecto a temas de interés general sobre la realidad social, económica y política del Uruguay. Esta serie de documentos tiene como objetivo presentar indicadores clave para el análisis de tendencias históricas del país que esperamos sean de utilidad para las comunidades académicas, los tomadores de decisión y los formadores de opinión, así como el público en general. Se presentan aquí indicadores sobre empleo, salarios y transferencias en el Uruguay durante las últimas décadas. 
+</div>
+
+<br />
+
+# Caracterización del mercado de empleo 
+
+<br />
+
+<div style="text-align: justify">
+
+La tasa de actividad es un indicador de la predisposición de las personas a participar en el mercado de empleo. La misma se calcula como el porcentaje de la población activa sobre la población en edad de trabajar.
+										
+La población activa refiere a todas las personas ocupadas o que, no estando ocupadas, se encuentran buscando empleo activamente. 
+
+La población en edad de trabajar designa a la población que ha cumplido la edad mínima legal para trabajar que, en el caso de Uruguay corresponde a los 15 años. Sin embargo,  a efectos estadísticos se la define como todas las personas cuyas edades superan una edad mínima específica para la que se realiza una encuesta sobre la actividad económica, 14 años en el caso de las Encuestas Continuas de Hogares.
+
+		
+</div>
+
+<br />
+
+##### **Actividad** 
+
+<div style="text-align: justify">
+
+Desde la década del noventa la tasa de actividad ha osicilado en el país urbano entre 57% y 65%. En las últimas tres décadas se observa una tendencia leve al aumento, exceptuando los años comprendidos entre 2001 y 2003. Si bien el indicador tiende a mantener una relativa estabilidad ha cambiado signficiativamente la composición de las personas activas. Se registra un aumento significativo de la tasa de actividad entre las mujeres y una reducción de 18 puntos porcentuales de la brecha según sexo. A la vez, se reduce de forma signifciativa la tasa entre las personas adolescentes y jóvenes de 14 a 24 años. 										
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE ACTIVIDAD",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de actividad**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE ACTIVIDAD", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="TASA DE ACTIVIDAD" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE ACTIVIDAD", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [2,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [2,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [2,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+<br />
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE ACTIVIDAD",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de actividad, según sexo**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE ACTIVIDAD", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 2, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639, "#a1dd70"),
+    labels = c("Varones", "Mujeres")
+  ) +
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE ACTIVIDAD", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "VARONES"|SEXO == "MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","SEXO","ANIO","VALOR")]
+t1 <- t1[order(t1$SEXO, t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [2,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [2,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [2,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE ACTIVIDAD",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de actividad, según tramo de edad**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- base %>% 
+  filter(NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 14 A 18 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 19 A 24 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 25 A 29 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 30 A 64 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 65 AÑOS Y MÁS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 14 A 18 AÑOS"~ "14 a 18 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 19 A 24 AÑOS"~ "19 a 24 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 25 A 29 AÑOS"~ "25 a 29 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 30 A 64 AÑOS"~ "30 a 64 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 65 AÑOS Y MÁS"~ "65 años y más"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR, color = UNIDAD)) +
+  geom_line(aes(group = 5, color = UNIDAD))+
+  scale_color_manual(
+      values = c(639,"#a1dd70","orangered","lightslategrey","mediumblue")) +
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+  
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 14 A 18 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 19 A 24 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 25 A 29 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 30 A 64 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 65 AÑOS Y MÁS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(TRAMO = case_when(NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 14 A 18 AÑOS"~ "14 a 18 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 19 A 24 AÑOS"~ "19 a 24 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 25 A 29 AÑOS"~ "25 a 29 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 30 A 64 AÑOS"~ "30 a 64 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 65 AÑOS Y MÁS"~ "65 años y más"))  %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","TRAMO","ANIO","VALOR")]
+t1 <- t1[order(t1$TRAMO,t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                           buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [2,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [2,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [2,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+<br />
+
+##### **Empleo** 
+
+
+<div style="text-align: justify">
+La tasa de empleo da cuenta de la proporción de personas ocupadas sobre el total de personas en edad de trabajar.
+
+Las personas ocupadas son todas aquellas personas en edad de trabajar que, durante la semana anterior a la aplicación de la encuesta, se dedicaban a alguna actividad para producir bienes o prestar servicios a cambio de remuneración o beneficios, ya sea que estuvieran «trabajando» en un puesto de trabajo por lo menos una hora, o «sin trabajar» debido a una ausencia temporal del puesto de trabajo o debido a disposiciones sobre el ordenamiento del tiempo de trabajo (como trabajo en turnos, horarios flexibles y licencias compensatorias por horas extraordinarias).
+
+Considerando las últimas tres décadas, se observa que la tasa de empleo permanece relativamente estable entre 1990 y 1997, disminuye  entre 1998 y 2003 y crece de forma significativa entre 2004 y 2014, año a partir del cual el crecimiento se estanca y decrece levemente.
+
+Al igual que para la tasa de actividad, la brecha según sexo de la tasa de empleo disminuye sustantcialmente, pasando de 29,4 puntos porcentuales en 1990 a 13,6 en 2020.    
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE EMPLEO",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de empleo**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="TASA DE EMPLEO" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+  ) +
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [3,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [3,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [3,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE EMPLEO",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de empleo, según sexo**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 2, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639, "#a1dd70"),
+    labels = c("Varones", "Mujeres")
+  ) +
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "VARONES"|SEXO == "MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","SEXO","ANIO","VALOR")]
+t1 <- t1[order(t1$SEXO, t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [3,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [3,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [3,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+<br />
+<br />
+
+##### **Desempleo** 
+
+
+
+<div style="text-align: justify">
+La tasa de desempleo mide el nivel de desocupación entre las personas activas. Este indicador presenta un leve aumento entre 1993 y 1996 y un aumento importante desde 1998 hasta el año 2003, cuando alcanza un valor máximo de 17% en el país urbano. Desde el año 2004 decrece significativamente hasta el año 2014 en que comienza a aumentar. 
+
+Esta tendencia es similar para varones y mujeres, si bien la tasa de desempleo es siempre mayor para las mujeres. Sin embargo, puede verse que  el aumento de la tasa de desempleo entre 1998 y 2003 es más pronunciado para las mujeres, ampliándose la brecha. A partir del año 2010 la brecha comienza a disminuir.   
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE DESEMPLEO",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de desempleo** 
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="TASA DE DESEMPLEO" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  ylim(0, 30) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [4,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [4,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [4,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE DESEMPLEO",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de desempleo, según sexo**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 2, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639, "#a1dd70"),
+    labels = c("Varones", "Mujeres")
+  ) +
+  ylim(0, 30) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "VARONES"|SEXO == "MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","SEXO","ANIO","VALOR")]
+t1 <- t1[order(t1$SEXO, t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [4,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [4,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [4,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+
+<br />
+<br />
+
+
+
+##### **Calidad del empleo** 
+
+<div style="text-align: justify">
+La tasa de subempleo representa la cantidad de personas ocupadas que trabajan menos de 40 horas semanales, que querrían y pueden trabajar más horas a la semana. Este indicador presenta un leve aumento entre 1993 y 1996 y un aumento importante desde 1998 hasta el año 2003. Desde el año 2004 decrece significativamente hasta el año 2014. 
+
+Este indicador es mayor para las mujeres que para los varones en todo el período y presenta una tendencia similar para ambos. Si bien la brecha en la tasa de subempleo de varones y mujeres disminuye de forma continua desde finales de los 90, en 2016 tiene una caída sustancial, permaneciendo en el entorno de 10% hasta 2020.    
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE SUBEMPLEO",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de subempleo**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="TASA DE SUBEMPLEO" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  ylim(0, 30) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [5,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [5,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [5,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "TASA DE SUBEMPLEO",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Tasa de subempleo, según sexo**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 2, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639, "#a1dd70"),
+    labels = c("Varones", "Mujeres")
+  ) +
+  ylim(0, 30) +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "VARONES"|SEXO == "MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100, 1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","SEXO","ANIO","VALOR")]
+t1 <- t1[order(t1$SEXO, t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [5,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [5,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [5,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+<br />
+
+
+<div style="text-align: justify">
+El porcentaje de personas ocupadas que no aportan a la seguridad social es un indicador de informalidad y de falta de garantías sociales y ejercicio de derechos laborales por parte de esta población. El mismo presenta un descenso constante desde el año 2004 hasta el año 2014, año en que la proporción tiende a estabilizarse.
+
+Este porcentaje es levemente mayor para las mujeres que para los varones entre 2004 y 2012, año a partir del cual esta relación se invierte. 
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas ocupadas que no están registradas en la seguridad social en la ocupación principal** 
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>%   mutate(UNIDAD = case_when(
+  NOMINDICADOR =="PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  ylim(0, 50) +
+  scale_x_continuous(breaks=seq(2000, 2020, 2), limits=c(2000,2020))  +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+ 
+
+
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [6,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [6,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [6,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+
+
+<div style="text-align: center">
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas ocupadas que no están registradas en la seguridad social en la ocupación principal, según sexo**
+##### País Urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 2, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639, "#a1dd70"),
+    labels = c("Varones", "Mujeres")
+  ) +
+  ylim(0, 50) +
+  scale_x_continuous(breaks=seq(2000, 2020, 2), limits=c(2000,2020))  +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "VARONES"|SEXO == "MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","SEXO","ANIO","VALOR")]
+t1 <- t1[order(t1$SEXO, t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [6,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [6,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [6,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+
+
+
+
+
+<br />
+
+
+<div style="text-align: center">
+
+<div style="text-align: justify">
+El porcentaje de personas ocupadas sin restricciones en el empleo (se considera subempleo y no aporte a la seguridad social) aumenta entre 2006 y 2020. Esta disminución tiene como correlato, principalmente, una disminución del porcentaje de personas que no aportan a la seguridad social.
+</div>
+
+
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Distribución de personas ocupadas según restricciones en el empleo**
+##### Total país, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(base$NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS", URBANORURALUY == "TOTAL PAÍS", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"~"Sin restricciones",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"~"Subempleo",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"~"Subempleo y no registro", NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS"~"No registro"))  %>%
+    mutate(UNIDAD = factor(UNIDAD, levels = c("Subempleo y no registro", "Subempleo", "No registro","Sin restricciones")))  %>%
+  ggplot(aes(x = FECHA, y = VALOR, fill=UNIDAD)) +
+  geom_bar(stat="identity", width=0.6)+
+  scale_fill_manual(
+    values = c("darkorange", "grey60",639,"#a1dd70"),
+  ) +
+#  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(2006, 2020, 1)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% filter(base$NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS", URBANORURALUY == "TOTAL PAÍS", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"~"Sin restricciones",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"~"Subempleo",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"~"Subempleo y no registro", NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS"~"No registro"))  %>%
+  mutate(NOMINDICADOR = case_when(
+  NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"~"DISTRIBUCIÓN DE PERSONAS SEGÚN RESTRICCIONES EN EL EMPLEO",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"~"DISTRIBUCIÓN DE PERSONAS SEGÚN RESTRICCIONES EN EL EMPLEO",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"~"DISTRIBUCIÓN DE PERSONAS SEGÚN RESTRICCIONES EN EL EMPLEO",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS"~"DISTRIBUCIÓN DE PERSONAS SEGÚN RESTRICCIONES EN EL EMPLEO"))  %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","UNIDAD","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$UNIDAD), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [11,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [11,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [11,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+<br />
+
+# Nivel y suficiencia de ingresos laborales 
+
+<br />
+
+##### **Nivel de ingresos laborales** 
+
+<div style="text-align: justify">
+
+El siguiente indicador presenta el promedio de ingresos que reciben las personas ocupadas por hora de trabajo en su ocupación princial. El mismo se encuentra deflactado a precios de diciembre del año 2006 por lo cual habilita dar cuenta de la evolución real durante el período. Desde 2001 a 2003, el indicador presenta una caída y a partir del año 2004 presenta una tendencia creciente en el país urbano. En 2020 se observa una caída del promedio de ingresos laborales por hora de trabajo luego de 16 años.  										
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "INGRESO POR HORA PROMEDIO EN OCUPACIÓN PRINCIPAL (DEF. BASE 2010)",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Salario promedio por hora de trabajo remunerado en ocupación principal (cte. base diciembre 2006)**
+##### País urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "INGRESO POR HORA PROMEDIO EN OCUPACIÓN PRINCIPAL (DEF. BASE 2010)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)") %>%
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="INGRESO POR HORA PROMEDIO EN OCUPACIÓN PRINCIPAL (DEF. BASE 2010)" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  scale_x_continuous(breaks=seq(2000, 2020, 2), limits=c(2000,2020))  +
+  ylim (0,120) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="INGRESO POR HORA PROMEDIO EN OCUPACIÓN PRINCIPAL (DEF. BASE 2010)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [12,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [12,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [12,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+<br />
+
+##### **Suficiencia de ingresos** 
+
+<div style="text-align: justify">
+Los siguientes gráficos son indicativos de la suficiencia de ingresos laborales de las personas ocupadas. El primer inicador muestra el porcentaje de ocupados cuyos ingresos mensuales se encuentran por debajo del salario mínimo nacional de enero de 2019. El segundo indicador da cuenta de la poroporción de esta población cuyos ingresos se encuentran por debajo de la línea de pobreza individual (definida para la población que reside en hogares unipersonales). Ambos indicadores presentan un importante descenso en el período, dando cuenta de un aumento de la suficiencia de los ingresos percibidos por la población empleada.
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DEL SMN",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas ocupadas que perciben ingresos por debajo del salario mínimo nacional (enero 2019)**
+##### País urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DEL SMN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DEL SMN" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  ylim(0,60) +
+  scale_x_continuous(breaks=seq(2000, 2020, 2), limits=c(2000,2020))  +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DEL SMN", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [13,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [13,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [13,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DE LA LÍNEA DE POBREZA",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas ocupadas que perciben ingresos por debajo de la línea de pobreza**
+##### Total país, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DE LA LÍNEA DE POBREZA", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 4, color = UNIDAD))+
+ scale_color_manual(
+    values = c(639, "#a1dd70","orangered","lightslategrey"),
+      ) +
+  ylim(0, 75) +
+  scale_x_continuous(breaks=seq(2006, 2020, 2)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DE LA LÍNEA DE POBREZA", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+    mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$UNIDAD_GEOGRÁFICA), ]
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [14,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [14,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [14,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+<br />
+
+##### **Poder adquisitivo** 
+
+<div style="text-align: justify">
+El índice medio de salarios (IMS) estima los ingresos corrientes de los trabajadores permanentes en relación de dependencia de los sectores público y privado formal de todo el país mientras que el índice de precios al consumo (IPC) es un indicador agregado que estima la variación mensual de los precios de bienes y servicios que consumen los hogares. El ISR, calculado como el cociente entre el IMS y el IPC, permite observar la evolución del poder adquisitivo de los asalariados, por lo que lo convierte en un indicador de referencia para la economía. Aumentos del ISR indican que el poder adquisitivo medio de los asalariados en relación de dependencia aumenta, por lo que en promedio pueden comprar más bienes y servicios que en el período anterior.
+</div>
+
+<br />
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "Índice de salario real anual - Sector Institucional (base 100 = 2008), según INE",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Índice de salario real anual según sector Institucional (base 100 = 2008)**
+##### `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "Índice de salario real anual - Sector Institucional (base 100 = 2008), según INE", SECTORINSTITUCIONAL == "Total economía"|SECTORINSTITUCIONAL=="Sector público"|SECTORINSTITUCIONAL=="Sector privado") %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 3, color = SECTORINSTITUCIONAL))+
+  scale_color_manual(
+    values = c(639, "#a1dd70","orangered"),
+      ) +
+  ylim(0, 200) +
+  scale_x_continuous (breaks=seq(1968, 2020, 4)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR == "Índice de salario real anual - Sector Institucional (base 100 = 2008), según INE", SECTORINSTITUCIONAL =="Total economía"|SECTORINSTITUCIONAL=="Sector público"|SECTORINSTITUCIONAL=="Sector privado") %>%
+  rename(ANIO = FECHA) %>%
+  rename(SECTOR = SECTORINSTITUCIONAL)
+
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","SECTOR","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$SECTOR), ]
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [16,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [16,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [16,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+<br />
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "Índice de salario real mensual según Sector Institucional (base 100 = julio 2008), según INE",]%>%
+  filter(FECHA > 1995) %>%
+  mutate(FECHA2=as.Date(FECHA2, format = "%d/%m/%Y"))
+max <- as.character(max(periodo$FECHA2))  
+anio_max <- substring(max,1,4)
+mes_max <- case_when(substring(max,6,7)=="01"~"Enero", substring(max,6,7)=="02"~"Febrero", substring(max,6,7)=="03"~"Marzo", substring(max,6,7)=="04"~"Abril", substring(max,6,7)=="05"~"Mayo", substring(max,6,7)=="06"~"Junio", substring(max,6,7)=="07"~"Julio", substring(max,6,7)=="08"~"Agosto", substring(max,6,7)=="09"~"Septiembre", substring(max,6,7)=="10"~"Octubre", substring(max,6,7)=="11"~"Noviembre", substring(max,6,7)=="12"~"Diciembre")
+min <- as.character(min(periodo$FECHA2))  
+anio_min <- substring(min,1,4)
+mes_min <- case_when(substring(min,6,7)=="01"~"Enero", substring(min,6,7)=="02"~"Febrero", substring(min,6,7)=="03"~"Marzo", substring(min,6,7)=="04"~"Abril", substring(min,6,7)=="05"~"Mayo", substring(min,6,7)=="06"~"Junio", substring(min,6,7)=="07"~"Julio", substring(min,6,7)=="08"~"Agosto", substring(min,6,7)=="09"~"Septiembre", substring(min,6,7)=="10"~"Octubre", substring(min,6,7)=="11"~"Noviembre", substring(min,6,7)=="12"~"Diciembre")
+
+periodo <- c(mes_min, " ", anio_min," - ", mes_max, " ", anio_max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+
+```
+##### **Índice de salario real mensual según sector Institucional (base 100 = 2008)**
+##### `r periodo_formatted`
+</div>
+  
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+  
+  
+```{r, out.width='100%'}
+#===============================================================================
+lims=as.Date(strptime(c("1996-01-01","2020-12-01"), format = "%Y-%m-%d"))  
+
+g1 <- 
+  base %>% filter(NOMINDICADOR == "Índice de salario real mensual según Sector Institucional (base 100 = julio 2008), según INE", SECTORINSTITUCIONAL == "Total economía"|SECTORINSTITUCIONAL=="Sector público"|SECTORINSTITUCIONAL=="Sector privado") %>%
+  filter(FECHA >= 1996 & FECHA<=2021) %>%
+  mutate(FECHA3=as.Date(FECHA2,format="%d/%m/%Y"))%>%
+  ggplot(aes(x = FECHA3, y = VALOR)) +
+  geom_line(aes(group = 3, color = SECTORINSTITUCIONAL))+
+  scale_color_manual(
+    values = c(639, "#a1dd70","orangered"),
+  ) +
+  ylim(0, 200) +
+  scale_x_date(date_breaks = "6 months", date_labels = "%b%y", limits=lims) +
+  theme_minimal()+
+  theme (axis.text.x = element_text(angle=-90)) +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.15,orientation = "h", xanchor = "center" )) 
+
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR == "Índice de salario real mensual según Sector Institucional (base 100 = julio 2008), según INE", SECTORINSTITUCIONAL =="Total economía"|SECTORINSTITUCIONAL=="Sector público"|SECTORINSTITUCIONAL=="Sector privado") %>%
+  rename(ANIO = FECHA) %>%
+  rename(SECTOR = SECTORINSTITUCIONAL)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","SECTOR","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$SECTOR), ]
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                           buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [17,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [17,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [17,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+<br />
+
+# Tranferencias 
+
+<br />
+
+##### **Cobertura de las transferencias contributivas** 
+
+<div style="text-align: justify">
+
+Los siguientes indicadores presenta el porcentaje de personas mayores de 65 años que perciben jubilaciones y el porcentaje de mayores de 65 años que perciben pensiones. Si bien ambos indicadores tienen una tendencia relativamente estable a lo largo del período, la proporción de mayores que perciben jubilación presenta una leve tendencia al aumento a partir del año 2007. Por su parte, la porporción que percibe pensiones presenta una leve tendencia al descenso a partir de 2010.  										
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN JUBILACIÓN",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas mayores de 65 años que perciben jubilación** 
+##### País urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN JUBILACIÓN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN JUBILACIÓN" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1992, 2020, 4)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN JUBILACIÓN", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [22,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [22,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [22,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+<br />
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN PENSIÓN",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas mayores de 65 años que perciben pensiones**
+##### País urbano, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN PENSIÓN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  NOMINDICADOR =="PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN PENSIÓN" ~ "Urbano (más de 5.000 habitantes)"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 1, color = UNIDAD)) +
+  scale_color_manual(
+      values = c(639)
+    ) +
+  ylim(0, 75) +
+  scale_x_continuous(breaks=seq(1992, 2020, 4)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN PENSIÓN", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO), ]
+
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [23,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [23,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [23,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br />
+
+##### **Suficiencia de las transferencias contributivas** 
+
+<div style="text-align: justify">
+
+Los siguientes gráficos son indicativos de la suficiencia de ingresos jubilatorios. El primer inicador muestra el porcentaje de jubilados cuyos ingreso mensuales se encuentran por debajo del salario mínimo nacional de enero de 2019. El segundo indicador da cuenta de la poroporción de esta población cuyo ingreso se encuentra por debajo de la línea de pobreza individual (definida para la población que reside en hogares unipersonales). Ambos indicadores presentan un importante descenso en el período, dando cuenta de un aumento de la suficiencia de los ingresos percibidos por la población jubilada. 
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DEL SALARIO MÍNIMO NACIONAL",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas que perciben jubilaciones por debajo del salario mínimo nacional**
+##### Total país, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DEL SALARIO MÍNIMO NACIONAL", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "TOTAL PAÍS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 4, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639),
+      ) +
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(2006, 2020, 2)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DEL SALARIO MÍNIMO NACIONAL", URBANORURALUY == "TOTAL PAÍS", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$UNIDAD_GEOGRÁFICA), ]
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [27,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [27,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [27,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DE LA LÍNEA DE POBREZA",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de personas que perciben jubilaciones por debajo de la línea de pobreza**
+##### Total país, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DE LA LÍNEA DE POBREZA", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "TOTAL PAÍS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 4, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639),
+      ) +
+  ylim(0, 75) +
+  scale_x_continuous(breaks=seq(2006, 2020, 2)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DE LA LÍNEA DE POBREZA", URBANORURALUY == "TOTAL PAÍS", 
+  SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$UNIDAD_GEOGRÁFICA), ]
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [25,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [25,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [25,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+
+##### **Cobertura de las transferencias no contributivas** 
+
+<div style="text-align: justify">
+
+Los siguientes gráficos presentan el porcentaje de hogares que perciben Asignaciones Familiares - Plan de Equidad (AFAM-PE) y Tarjetas Uruguay Social (TUS) respectivamente. En 2020, un 13,4% de los hogares percibía AFAM y un 3,5% era perceptor de TUS. El primer indicador presenta una tendencia creciente hasta el año 2009 para el total país y decrece levemente a partir de esta fecha. El porcentaje de hogares que perciben TUS se ha mantenido constante en el período, con una disminución en 2020.
+</div>
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN ASIGNACIONES FAMILIARES (SOLO PLAN DE EQUIDAD)",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+
+##### **Porcentaje de hogares que perciben asignaciones familiares (Plan de equidad)**
+##### Total país, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN ASIGNACIONES FAMILIARES (SOLO PLAN DE EQUIDAD)", SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 4, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639, "#a1dd70","orangered","lightslategrey"),
+      ) +
+  ylim(0, 40) +
+  scale_x_continuous(breaks=seq(2009, 2020, 1)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE HOGARES QUE PERCIBEN ASIGNACIONES FAMILIARES (SOLO PLAN DE EQUIDAD)", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", 
+  SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$UNIDAD_GEOGRÁFICA), ]
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [31,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [31,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [30,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
+
+<br />
+
+
+<div style="text-align: center">
+```{r}
+periodo <- base[base$NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN TARJETA URUGUAY SOCIAL",]
+max<- max(periodo$FECHA)
+min<- min(periodo$FECHA)
+periodo <- c(min," - ", max)
+periodo_formatted <- paste(
+  text_spec(periodo, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+##### **Porcentaje de hogares que perciben Tarjeta Uruguay Social**
+##### Total país, `r periodo_formatted`
+</div>
+
+## {.tabset .tabset-fade .tabset-pills}
+### Gráfico
+
+
+```{r, out.width='100%'}
+#===============================================================================
+g1 <- 
+  base %>% filter(NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN TARJETA URUGUAY SOCIAL", SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
+  ggplot(aes(x = FECHA, y = VALOR)) +
+  geom_line(aes(group = 4, color = UNIDAD))+
+  scale_color_manual(
+    values = c(639, "#a1dd70","orangered","lightslategrey"),
+      ) +
+  ylim(0, 20) +
+  scale_x_continuous(breaks=seq(2015, 2020, 1)) +
+  theme_minimal() +
+  labs(
+    color = "",
+    title = "",
+    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    x = "",
+    y = ""
+  )
+ggplotly(g1) %>% 
+  config(displayModeBar = F) %>%
+  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+#===============================================================================
+```
+
+### Descargar Tabla
+
+
+```{r}
+t1 <- 
+  base %>% 
+  filter(NOMINDICADOR =="PORCENTAJE DE HOGARES QUE PERCIBEN TARJETA URUGUAY SOCIAL", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", 
+  SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS") %>%
+  mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
+  mutate(UNIDAD = case_when(
+  URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
+  mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
+  rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
+  rename(ANIO = FECHA)
+t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
+t1 <- t1[order(t1$ANIO, t1$UNIDAD_GEOGRÁFICA), ]
+
+DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
+                                                       buttons = c('copy', 'csv', 'excel', 'print') )
+) 
+```
+
+### Ficha Técnica
+
+
+```{r}
+def <- strsplit(paste0(base_fichas [32,"DEFINICIÓN"])," ")[[1]]
+def_formatted <- paste(
+  text_spec(def, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Definición:** `r def_formatted`
+
+
+```{r}
+calc <- strsplit(paste0(base_fichas [32,"FORMA DE CÁLCULO"])," ")[[1]]
+calc_formatted <- paste(
+  text_spec(calc, color = 1, font_size = 16, align = "justify"),
+  collapse = " ")
+```
+> **Forma de cálculo:** `r calc_formatted`
+
+
+##
+
+
+```{r}
+cita <- strsplit(paste0("Fuente: ", base_fichas [32,"FUENTE"])," ")[[1]]
+cita_formatted <- paste(
+  text_spec(cita, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r cita_formatted` 
+
