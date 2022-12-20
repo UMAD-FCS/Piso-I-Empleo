@@ -417,7 +417,7 @@ Las personas ocupadas son todas aquellas personas en edad de trabajar que, duran
 
 Considerando las últimas tres décadas, se observa que la tasa de empleo permanece relativamente estable entre 1990 y 1997, disminuye  entre 1998 y 2003 y crece de forma significativa entre 2004 y 2014, año a partir del cual el crecimiento se estanca y decrece levemente.
 
-Al igual que para la tasa de actividad, la brecha según sexo de la tasa de empleo disminuye sustantcialmente, pasando de 29,4 puntos porcentuales en 1990 a 13,6 en 2020.    
+Al igual que para la tasa de actividad, la brecha según sexo de la tasa de empleo disminuye sustantcialmente, pasando de 29,4 puntos porcentuales en 1990 a 13,1 en 2021.    
 </div>
 
 <br />
@@ -1495,7 +1495,7 @@ cita_formatted <- paste(
 
 <div style="text-align: justify">
 
-El siguiente indicador presenta el promedio de ingresos que reciben las personas ocupadas por hora de trabajo en su ocupación princial. El mismo se encuentra deflactado a precios de diciembre del año 2006 por lo cual habilita dar cuenta de la evolución real durante el período. Desde 2001 a 2003, el indicador presenta una caída y a partir del año 2004 presenta una tendencia creciente en el país urbano. En 2020 se observa una caída del promedio de ingresos laborales por hora de trabajo luego de 16 años.  										
+El siguiente indicador presenta el promedio de ingresos que reciben las personas ocupadas por hora de trabajo en su ocupación princial. El mismo se encuentra deflactado a precios de diciembre del año 2006 por lo cual habilita dar cuenta de la evolución real durante el período. Desde 2001 a 2003, el indicador presenta una caída y a partir del año 2004 presenta una tendencia creciente en el país urbano. A partir de 2020 se observa una caída del promedio de ingresos laborales por hora de trabajo luego de 16 años.  										
 </div>
 
 <br />
@@ -1957,7 +1957,7 @@ cita_formatted <- paste(
 
 <div style="text-align: justify">
 
-Los siguientes indicadores presenta el porcentaje de personas mayores de 65 años que perciben jubilaciones y el porcentaje de mayores de 65 años que perciben pensiones. Si bien ambos indicadores tienen una tendencia relativamente estable a lo largo del período, la proporción de mayores que perciben jubilación presenta una leve tendencia al aumento a partir del año 2007. Por su parte, la porporción que percibe pensiones presenta una leve tendencia al descenso a partir de 2010.  										
+Los siguientes indicadores presentan el porcentaje de personas mayores de 65 años que perciben jubilaciones y el porcentaje de mayores de 65 años que perciben pensiones. Si bien ambos indicadores tienen una tendencia relativamente estable a lo largo del período, la proporción de mayores que perciben jubilación presenta una leve tendencia al aumento a partir del año 2007. Por su parte, la porporción que percibe pensiones presenta una leve tendencia al descenso a partir de 2010.  										
 </div>
 
 <br />
@@ -2207,7 +2207,7 @@ cita_formatted <- paste(
 
 <div style="text-align: justify">
 
-Los siguientes gráficos son indicativos de la suficiencia de ingresos jubilatorios. El primer inicador muestra el porcentaje de jubilados cuyos ingreso mensuales se encuentran por debajo del salario mínimo nacional. El segundo indicador da cuenta de la poroporción de esta población cuyo ingreso se encuentra por debajo de la línea de pobreza individual (definida para la población que reside en hogares unipersonales). Ambos indicadores presentan un importante descenso en el período, dando cuenta de un aumento de la suficiencia de los ingresos percibidos por la población jubilada. 
+Los siguientes gráficos son indicativos de la suficiencia de ingresos jubilatorios. El primer inicador muestra el porcentaje de jubilados cuyos ingresos mensuales se encuentran por debajo del salario mínimo nacional. El segundo indicador da cuenta de la poroporción de esta población cuyo ingreso se encuentra por debajo de la línea de pobreza individual (definida para la población que reside en hogares unipersonales). El primer indicador presenta un aumento durante el período, mientras el segundo un importante descenso. 
 </div>
 
 <br />
@@ -2439,7 +2439,7 @@ cita_formatted <- paste(
 
 <div style="text-align: justify">
 
-Los siguientes gráficos presentan el porcentaje de hogares que perciben Asignaciones Familiares - Plan de Equidad (AFAM-PE) y Tarjetas Uruguay Social (TUS) respectivamente. En 2020, un 13,4% de los hogares percibía AFAM y un 3,5% era perceptor de TUS. El primer indicador presenta una tendencia creciente hasta el año 2009 para el total país y decrece levemente a partir de esta fecha. El porcentaje de hogares que perciben TUS se ha mantenido constante en el período, con una disminución en 2020.
+Los siguientes gráficos presentan el porcentaje de hogares que perciben Asignaciones Familiares - Plan de Equidad (AFAM-PE) y Tarjetas Uruguay Social (TUS) respectivamente. En 2020, un 13,4% de los hogares percibía AFAM y un 3,5% era perceptor de TUS. El primer indicador presenta una tendencia creciente hasta el año 2009 para el total país y decrece levemente a partir de esta fecha. El porcentaje de hogares que perciben TUS se ha mantenido constante en el período, con una disminución en 2020 y posterior aumento en 2021.
 </div>
 
 <br />
