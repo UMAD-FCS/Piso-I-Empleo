@@ -1,27 +1,31 @@
-
 ---
-title: "**<br /> <br /> Empleo, salarios y transferencias**"
+title: '**<br /> <br /> Empleo, salarios y transferencias**'
 output:
   html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 1
+    theme: flatly
+    toc: yes
+    toc_float: yes
+    smooth_scroll: yes
+    toc_depth: 2
+    number_sections: false 
+    css: "www/estilo.css"
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
-<script>
-  $(document).ready(function() {
-    $head = $('#header');
-    $head.prepend('<img src="images/logo.png\" style=\"float: right;width: 400px;\"/>')
-  });
-</script>
+
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
-
 ```{r}
+htmltools::img(src = knitr::image_uri("www/logo_umad.png"), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:0; padding:15px;max-width: 45%;')
+
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(plotly))
 suppressPackageStartupMessages(library(ggplot2))
@@ -40,14 +44,17 @@ base_fichas <- base_fichas[order(base_fichas$ID),]
 <br />
 
 <div style="text-align: justify">
-La [Unidad de Métodos y Acceso a Datos](https://umad.cienciassociales.edu.uy/) (UMAD) (FCS-UdelaR) a partir del [Observatorio Uruguay](https://umad.cienciassociales.edu.uy/observatorio-uruguay/) busca aportar a la difusión de conocimiento respecto a temas de interés general sobre la realidad social, económica y política del Uruguay. Esta serie de documentos tiene como objetivo presentar indicadores clave para el análisis de tendencias históricas del país que esperamos sean de utilidad para las comunidades académicas, los tomadores de decisión y los formadores de opinión, así como el público en general. Se presentan aquí indicadores sobre empleo, salarios y transferencias en el Uruguay durante las últimas décadas. 
+**La [Unidad de Métodos y Acceso a Datos](https://umad.cienciassociales.edu.uy/) (UMAD) (FCS-UdelaR) a partir del [Observatorio Uruguay](https://umad.cienciassociales.edu.uy/observatorio-uruguay/) busca aportar a la difusión de conocimiento respecto a temas de interés general sobre la realidad social, económica y política del Uruguay. Esta serie de documentos tiene como objetivo presentar indicadores clave para el análisis de tendencias históricas del país que esperamos sean de utilidad para las comunidades académicas, los tomadores de decisión y los formadores de opinión, así como el público en general. Se presentan aquí indicadores sobre empleo, salarios y transferencias en el Uruguay durante las últimas décadas.** 
 </div>
 
+<hr style="border:1.5px solid #2c3e50"> </hr>
+
+
 <br />
 
-# Caracterización del mercado de empleo 
+# **Caracterización del mercado de empleo** 
+## **Actividad**
 
-<br />
 
 <div style="text-align: justify">
 
@@ -60,9 +67,6 @@ La población en edad de trabajar designa a la población que ha cumplido la eda
 		
 </div>
 
-<br />
-
-##### **Actividad** 
 
 <div style="text-align: justify">
 
@@ -87,8 +91,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -121,7 +125,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -141,7 +145,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -170,8 +174,158 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
+#### Código en R
 
-##
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Población económicamente activa
+
+sem1 <- sem1 %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 | 
+                                              POBPCOAC==3 | 
+                                              POBPCOAC==4 | 
+                                              POBPCOAC==5, 1, 0))
+sem2_panel <- sem2_panel %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 |
+                                                          POBPCOAC==3 | 
+                                                          POBPCOAC==4 | 
+                                                          POBPCOAC==5, 1, 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de actividad
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(E27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(pea, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_panel_svy %>%
+  srvyr::filter(e27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(pea, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -199,8 +353,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -231,7 +385,7 @@ ggplotly(g1) %>%
   layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -252,7 +406,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -280,7 +434,174 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Población económicamente activa
+
+sem1 <- sem1 %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 | 
+                                              POBPCOAC==3 | 
+                                              POBPCOAC==4 | 
+                                              POBPCOAC==5, 1, 0))
+sem2_panel <- sem2_panel %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 |
+                                                          POBPCOAC==3 | 
+                                                          POBPCOAC==4 | 
+                                                          POBPCOAC==5, 1, 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de actividad según sexo 
+
+a_sexo <- function(x) {
+  x <- sem1_svy %>%
+    filter(bc_pe2 == x & E27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(pea, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+a_e_sexo <- numeric()
+
+for(i in 1:2){
+  a_e_sexo[i] <- a_sexo(x = i)
+}     
+
+b_sexo <- function(x) {
+  x <- sem2_panel_svy %>%
+    filter(bc_pe2 == x & e27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(pea, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+b_e_sexo <- numeric()
+
+for(i in 1:2){
+  b_e_sexo[i] <- b_sexo(x = i)
+}     
+
+
+c_sexo_pu <- as.data.frame(cbind(a_e_sexo, b_e_sexo))
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(VALOR = (a_e_sexo + b_e_sexo)/2)
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(aux = c(9, 10))
+c_sexo_pu <- c_sexo_pu[,c("VALOR", "aux")]
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -312,8 +633,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -344,7 +665,7 @@ ggplotly(g1) %>%
 ```
 
   
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -364,7 +685,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -392,7 +713,172 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Población económicamente activa
+
+sem1 <- sem1 %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 | 
+                                              POBPCOAC==3 | 
+                                              POBPCOAC==4 | 
+                                              POBPCOAC==5, 1, 0))
+sem2_panel <- sem2_panel %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 |
+                                                          POBPCOAC==3 | 
+                                                          POBPCOAC==4 | 
+                                                          POBPCOAC==5, 1, 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de actividad según tramo de edad 
+
+a_edad <- function(x) {
+  x <- sem1_svy %>%
+    filter(tramo_edad == x & E27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(pea, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+a_e_edad <- numeric()
+
+for(i in 1:5){
+  a_e_edad[i] <- a_edad(x = i)
+}     
+
+b_edad <- function(x) {
+  x <- sem2_panel_svy %>%
+    filter(tramo_edad == x & e27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(pea, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+b_e_edad <- numeric()
+
+for(i in 1:5){
+  b_e_edad[i] <- b_edad(x = i)
+} 
+
+c_edad_pu <- as.data.frame(cbind(a_e_edad, b_e_edad))
+c_edad_pu <- c_edad_pu %>% dplyr::mutate(VALOR = (a_e_edad + b_e_edad)/2)
+c_edad_pu <- c_edad_pu %>% dplyr::mutate(aux = c(11, 12, 13, 14, 15))
+c_edad_pu <- c_edad_pu[,c("VALOR", "aux")]
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -407,7 +893,7 @@ cita_formatted <- paste(
 <br />
 <br />
 
-##### **Empleo** 
+## **Empleo** 
 
 
 <div style="text-align: justify">
@@ -438,8 +924,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -471,7 +957,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -491,7 +977,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -519,7 +1005,156 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de empleo
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(E27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(ocup, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_panel_svy %>%
+  srvyr::filter(e27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(ocup, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -550,8 +1185,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -584,7 +1219,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -604,7 +1239,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -632,7 +1267,174 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de empleo según sexo
+
+a_sexo <- function(x) {
+  x <- sem1_svy %>%
+    filter(bc_pe2 == x & E27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(ocup, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+a_e_sexo <- numeric()
+
+for(i in 1:2){
+  a_e_sexo[i] <- a_sexo(x = i)
+}     
+
+b_sexo <- function(x) {
+  x <- sem2_panel_svy %>%
+    filter(bc_pe2 == x & e27>=14 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(ocup, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+b_e_sexo <- numeric()
+
+for(i in 1:2){
+  b_e_sexo[i] <- b_sexo(x = i)
+}     
+
+
+c_sexo_pu <- as.data.frame(cbind(a_e_sexo, b_e_sexo))
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(VALOR = (a_e_sexo + b_e_sexo)/2)
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(aux = c(9, 10))
+c_sexo_pu <- c_sexo_pu[,c("VALOR", "aux")]
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -648,7 +1450,7 @@ cita_formatted <- paste(
 <br />
 <br />
 
-##### **Desempleo** 
+## **Desempleo** 
 
 
 
@@ -676,8 +1478,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -709,7 +1511,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -729,7 +1531,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -757,7 +1559,177 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Población económicamente activa
+
+sem1 <- sem1 %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 | 
+                                              POBPCOAC==3 | 
+                                              POBPCOAC==4 | 
+                                              POBPCOAC==5, 1, 0))
+sem2_panel <- sem2_panel %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 | 
+                                                          POBPCOAC==3 | 
+                                                          POBPCOAC==4 | 
+                                                          POBPCOAC==5, 1, 0))
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+# Desempleados
+
+sem1 <- sem1 %>% dplyr::mutate(desocup = ifelse(POBPCOAC==3 | 
+                                                  POBPCOAC==4 | 
+                                                  POBPCOAC==5, 1, 0))
+sem2_panel <- sem2_panel %>% dplyr::mutate(desocup = ifelse(POBPCOAC==3 | 
+                                                              POBPCOAC==4 | 
+                                                              POBPCOAC==5, 1, 0))
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de desempleo
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(pea == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(desocup, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_panel_svy %>%
+  srvyr::filter(pea == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(desocup, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -787,8 +1759,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -821,7 +1793,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -841,7 +1813,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -869,7 +1841,192 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Población económicamente activa
+
+sem1 <- sem1 %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 | 
+                                              POBPCOAC==3 | 
+                                              POBPCOAC==4 | 
+                                              POBPCOAC==5, 1, 0))
+sem2_panel <- sem2_panel %>% dplyr::mutate(pea = ifelse(POBPCOAC==2 | 
+                                                          POBPCOAC==3 | 
+                                                          POBPCOAC==4 | 
+                                                          POBPCOAC==5, 1, 0))
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+# Desempleados
+
+sem1 <- sem1 %>% dplyr::mutate(desocup = ifelse(POBPCOAC==3 | 
+                                                  POBPCOAC==4 | 
+                                                  POBPCOAC==5, 1, 0))
+sem2_panel <- sem2_panel %>% dplyr::mutate(desocup = ifelse(POBPCOAC==3 | 
+                                                              POBPCOAC==4 | 
+                                                              POBPCOAC==5, 1, 0))
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de desempleo según sexo
+
+a_sexo <- function(x) {
+  x <- sem1_svy %>%
+    filter(bc_pe2 == x & pea == 1 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(desocup, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+a_e_sexo <- numeric()
+
+for(i in 1:2){
+  a_e_sexo[i] <- a_sexo(x = i)
+}     
+
+b_sexo <- function(x) {
+  x <- sem2_panel_svy %>%
+    filter(bc_pe2 == x & pea == 1 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(desocup, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+b_e_sexo <- numeric()
+
+for(i in 1:2){
+  b_e_sexo[i] <- b_sexo(x = i)
+}     
+
+
+c_sexo_pu <- as.data.frame(cbind(a_e_sexo, b_e_sexo))
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(VALOR = (a_e_sexo + b_e_sexo)/2)
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(aux = c(9, 10))
+c_sexo_pu <- c_sexo_pu[,c("VALOR", "aux")]
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -888,7 +2045,7 @@ cita_formatted <- paste(
 
 
 
-##### **Calidad del empleo** 
+## **Calidad del empleo** 
 
 <div style="text-align: justify">
 La tasa de subempleo representa la cantidad de personas ocupadas que trabajan menos de 40 horas semanales, que querrían y pueden trabajar más horas a la semana. Este indicador presenta un leve aumento entre 1993 y 1996 y un aumento importante desde 1998 hasta el año 2003. Desde el año 2004 decrece significativamente hasta el año 2014. 
@@ -914,8 +2071,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -947,7 +2104,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -967,7 +2124,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -995,7 +2152,170 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# Subempleo
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bc_subocupado = ifelse(F102 == 1 & 
+                                         F104 == 5 & 
+                                         bc_horas > 0 & 
+                                         bc_horas < 40, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(bc_subocupado = ifelse(f102 == 1 & 
+                                         f104 == 5 & 
+                                         bc_horas > 0 & bc_horas < 40, 1, 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de subempleo
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(bc_subocupado, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_panel_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(bc_subocupado, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -1025,8 +2345,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1059,7 +2379,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1079,7 +2399,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1107,7 +2427,186 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# Subempleo
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bc_subocupado = ifelse(F102 == 1 & 
+                                         F104 == 5 & 
+                                         bc_horas > 0 & 
+                                         bc_horas < 40, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(bc_subocupado = ifelse(f102 == 1 & 
+                                         f104 == 5 & 
+                                         bc_horas > 0 & bc_horas < 40, 1, 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Tasa de subempleo según sexo
+
+a_sexo <- function(x) {
+  x <- sem1_svy %>%
+    filter(bc_pe2 == x & ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(bc_subocupado, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+a_e_sexo <- numeric()
+
+for(i in 1:2){
+  a_e_sexo[i] <- a_sexo(x = i)
+}     
+
+b_sexo <- function(x) {
+  x <- sem2_panel_svy %>%
+    filter(bc_pe2 == x & ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(bc_subocupado, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+b_e_sexo <- numeric()
+
+for(i in 1:2){
+  b_e_sexo[i] <- b_sexo(x = i)
+}     
+
+
+c_sexo_pu <- as.data.frame(cbind(a_e_sexo, b_e_sexo))
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(VALOR = (a_e_sexo + b_e_sexo)/2)
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(aux = c(9, 10))
+c_sexo_pu <- c_sexo_pu[,c("VALOR", "aux")]
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -1147,8 +2646,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1183,7 +2682,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1203,7 +2702,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1232,7 +2731,172 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# No aporte a SS en trabajo principal y secundario
+
+sem1 <- sem1 %>% dplyr::mutate(bc_register2 = ifelse(F96 == 1 | F82 == 1, 0, 1))
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_register2 = ifelse(f96 == 1 | f82 == 1, 0, 1))
+sem2_panel <- sem2_panel %>% dplyr::mutate(bc_register2 = ifelse(f96 == 1 | f82 == 1, 0, 1))
+
+
+# No aporte a SS en trabajo principal
+
+sem1 <- sem1 %>% dplyr::mutate(bc_register = ifelse(F82 == 1, 0, 1))
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_register = ifelse(f82 == 1, 0, 1))
+sem2_panel <- sem2_panel %>% dplyr::mutate(bc_register = ifelse(f82 == 1, 0, 1))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de ocupados que no aportan a la seguridad social en ocupación principal
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(bc_register, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_panel_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(bc_register, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -1262,8 +2926,8 @@ periodo_formatted <- paste(
 ##### País Urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1296,7 +2960,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1316,7 +2980,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1345,7 +3009,186 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# No aporte a SS en trabajo principal y secundario
+
+sem1 <- sem1 %>% dplyr::mutate(bc_register2 = ifelse(F96 == 1 | F82 == 1, 0, 1))
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_register2 = ifelse(f96 == 1 | f82 == 1, 0, 1))
+sem2_panel <- sem2_panel %>% dplyr::mutate(bc_register2 = ifelse(f96 == 1 | f82 == 1, 0, 1))
+
+
+# No aporte a SS en trabajo principal
+
+sem1 <- sem1 %>% dplyr::mutate(bc_register = ifelse(F82 == 1, 0, 1))
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_register = ifelse(f82 == 1, 0, 1))
+sem2_panel <- sem2_panel %>% dplyr::mutate(bc_register = ifelse(f82 == 1, 0, 1))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de ocupados que no aportan a la seguridad social en ocupación principal según sexo
+
+a_sexo <- function(x) {
+  x <- sem1_svy %>%
+    filter(bc_pe2 == x & ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(bc_register, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+a_e_sexo <- numeric()
+
+for(i in 1:2){
+  a_e_sexo[i] <- a_sexo(x = i)
+}     
+
+b_sexo <- function(x) {
+  x <- sem2_panel_svy %>%
+    filter(bc_pe2 == x & ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+    srvyr::group_by(mes) %>%
+    srvyr::summarise(colname = srvyr::survey_mean(bc_register, na.rm=T))
+  x <- mean(x$colname)
+}       
+
+b_e_sexo <- numeric()
+
+for(i in 1:2){
+  b_e_sexo[i] <- b_sexo(x = i)
+}     
+
+
+c_sexo_pu <- as.data.frame(cbind(a_e_sexo, b_e_sexo))
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(VALOR = (a_e_sexo + b_e_sexo)/2)
+c_sexo_pu <- c_sexo_pu %>% dplyr::mutate(aux = c(9, 10))
+c_sexo_pu <- c_sexo_pu[,c("VALOR", "aux")]
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -1355,11 +3198,6 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
-
-
-
-
 
 
 
@@ -1386,8 +3224,8 @@ periodo_formatted <- paste(
 ##### Total país, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1421,7 +3259,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1443,7 +3281,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1472,7 +3310,229 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# No aporte a SS en trabajo principal y secundario
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bc_register2 = ifelse(F96 == 1 | F82 == 1, 0, 1))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bc_register2 = ifelse(f96 == 1 | f82 == 1, 0, 1))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(bc_register2 = ifelse(f96 == 1 | f82 == 1, 0, 1))
+
+
+# No aporte a SS en trabajo principal
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bc_register = ifelse(F82 == 1, 0, 1))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bc_register = ifelse(f82 == 1, 0, 1))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(bc_register = ifelse(f82 == 1, 0, 1))
+
+
+
+# Subempleo
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bc_subocupado = ifelse(F102 == 1 & 
+                                        F104 == 5 & 
+                                        bc_horas > 0 & 
+                                        bc_horas < 40, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(bc_subocupado = ifelse(f102 == 1 & 
+                                       f104 == 5 & 
+                                       bc_horas > 0 & 
+                                       bc_horas < 40, 1, 0))
+
+
+# Restricciones al empleo
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(nre = ifelse(bc_register2 == 1 & bc_subocupado == 0 , 1, 0))
+sem1 <- sem1 %>% 
+  dplyr::mutate(sub = ifelse(bc_register2 == 0 & bc_subocupado == 1 , 1, 0))
+sem1 <- sem1 %>% 
+  dplyr::mutate(amb = ifelse(bc_register2 == 1 & bc_subocupado == 1 , 1, 0))
+sem1 <- sem1 %>% 
+  dplyr::mutate(sin = ifelse(bc_register2 == 0 & bc_subocupado == 0 , 1, 0))
+
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(nre = ifelse(bc_register2 == 1 & bc_subocupado == 0 , 1, 0))
+sem2_panel <- sem2_panel %>%
+  dplyr::mutate(sub = ifelse(bc_register2 == 0 & bc_subocupado == 1 , 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(amb = ifelse(bc_register2 == 1 & bc_subocupado == 1 , 1, 0))
+sem2_panel <- sem2_panel %>%
+  dplyr::mutate(sin = ifelse(bc_register2 == 0 & bc_subocupado == 0 , 1, 0))
+
+restricciones <- c("nre", "sub", "amb", "sin")
+
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Distribución de personas ocupadas según restricciones al empleo
+
+Restricciones <- c("No registradas",
+                   "Subempleadas",
+                   "No registradas y subempleadas",
+                   "Sin restricciones al empleo")
+  
+# Total
+
+base <- sem1_svy2 %>% filter(ocup == 1)
+
+a_sem <- sapply(base$variables %>% select(restricciones), function(x){
+  base %>%
+    filter(ocup == 1) %>%
+    srvyr::summarise(VALOR_1 = srvyr::survey_mean(x, na.rm = TRUE)) 
+})
+
+a_sem <- data.frame(t(a_sem))
+
+base <- sem2_panel_svy %>% filter(ocup == 1)
+
+b_sem <- sapply(base$variables %>% select(restricciones), function(x){
+  base %>%
+    srvyr::summarise(VALOR_2 = srvyr::survey_mean(x, na.rm = TRUE)) 
+})
+
+b_sem <- data.frame(t(b_sem))
+
+c_ano <- cbind(a_sem, b_sem)
+c_ano <- c_ano %>% dplyr::mutate(VALOR = (as.numeric(VALOR_1) + as.numeric(VALOR_2)) /2)
+c_ano <- c_ano %>% dplyr::mutate(aux = 1)
+c_ano <- c_ano %>% dplyr::mutate(RESTRICCIONES_AL_EMPLEO = Restricciones)
+c_ano <- c_ano[,c("VALOR", "aux", "RESTRICCIONES_AL_EMPLEO")]
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -1487,11 +3547,9 @@ cita_formatted <- paste(
 <br />
 <br />
 
-# Nivel y suficiencia de ingresos laborales 
+# **Nivel y suficiencia de ingresos laborales** 
 
-<br />
-
-##### **Nivel de ingresos laborales** 
+## **Nivel de ingresos laborales** 
 
 <div style="text-align: justify">
 
@@ -1515,8 +3573,8 @@ periodo_formatted <- paste(
 ##### País urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1547,7 +3605,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1566,7 +3624,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1595,7 +3653,229 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+#IPC
+
+sem1 <- sem1 %>% dplyr::mutate(bc_ipc_tot = case_when(mes == 1 ~ 0.335542051,
+                                                      mes == 2 ~ 0.330249262,
+                                                      mes == 3 ~ 0.327549795,
+                                                      mes == 4 ~ 0.32554687,
+                                                      mes == 5 ~ 0.323919843,
+                                                      mes == 6 ~ 0.322448435))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_ipc_tot = case_when(
+  mes == 7  ~ 0.320314392,
+  mes == 8  ~ 0.318657357,
+  mes == 9  ~ 0.31596912,
+  mes == 10 ~ 0.314515807,
+  mes == 11 ~ 0.31128448,
+  mes == 12 ~ 0.310493463))
+
+
+sem1 <- sem1 %>% dplyr::mutate(bc_ipc = case_when(    mes == 1 ~ 0.329708731,
+                                                      mes == 2 ~ 0.325120854,
+                                                      mes == 3 ~ 0.32193312,
+                                                      mes == 4 ~ 0.320163041,
+                                                      mes == 5 ~ 0.318357918,
+                                                      mes == 6 ~ 0.316774856))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_ipc = case_when(
+  mes == 7 ~  0.314794762,
+  mes == 8 ~  0.31306265,
+  mes == 9 ~  0.310558149,
+  mes == 10 ~ 0.309320866,
+  mes == 11 ~ 0.306270364,
+  mes == 12 ~ 0.305191859))                                                 
+
+
+sem1 <- sem1 %>% dplyr::mutate(ipc_ene2022 = case_when(    mes == 1 ~ 0.941120053,
+                                                           mes == 2 ~ 0.948876194,
+                                                           mes == 3 ~ 0.32193312,
+                                                           mes == 4 ~ 0.959509612,
+                                                           mes == 5 ~ 0.963888078,
+                                                           mes == 6 ~ 0.970309829))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(ipc_ene2022 = case_when(
+  mes == 7 ~  0.97535549,
+  mes == 8 ~  0.983653726,
+  mes == 9 ~  0.988198991,
+  mes == 10 ~ 0.998457112,
+  mes == 11 ~ 1.001000792,
+  mes == 12 ~ 1))                                                 
+
+sem2_panel <- sem2_panel %>% dplyr::mutate(ipc_ene2022 = case_when(
+  mes == 7 ~  0.97535549,
+  mes == 8 ~  0.983653726,
+  mes == 9 ~  0.988198991,
+  mes == 10 ~ 0.998457112,
+  mes == 11 ~ 1.001000792,
+  mes == 12 ~ 1))   
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# Salario en ocupación principal
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(horamen = F85 * 4.3)
+sem1 <- sem1 %>% 
+  dplyr::mutate(yhora = PT2/horamen)
+sem1 <- sem1 %>% 
+  dplyr::mutate(yhoradef = case_when(F85>0 ~ yhora*bc_ipc_tot,
+                                                    F85==0 ~ 0))
+                               
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(horamen = f85 * 4.3)
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(yhora = pt2/horamen)
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(yhoradef = case_when(f85>0 ~ yhora*bc_ipc_tot,
+                                                                    f85==0 ~ 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Salario promedio por hora de trabajo remunerado en ocupación principal
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2) & F85>0) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(yhoradef, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_implant_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2) & f85>0) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(yhoradef, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -1610,7 +3890,7 @@ cita_formatted <- paste(
 
 <br />
 
-##### **Suficiencia de ingresos** 
+## **Suficiencia de ingresos** 
 
 <div style="text-align: justify">
 Los siguientes gráficos son indicativos de la suficiencia de ingresos laborales de las personas ocupadas. El primer inicador muestra el porcentaje de ocupados cuyos ingresos mensuales se encuentran por debajo del salario mínimo nacional de enero de 2019. El segundo indicador da cuenta de la poroporción de esta población cuyos ingresos se encuentran por debajo de la línea de pobreza individual (definida para la población que reside en hogares unipersonales). Ambos indicadores presentan un importante descenso en el período, dando cuenta de un aumento de la suficiencia de los ingresos percibidos por la población empleada.
@@ -1633,8 +3913,8 @@ periodo_formatted <- paste(
 ##### País urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1666,7 +3946,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1686,7 +3966,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1715,7 +3995,237 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+smn <- 17930
+smn_h = smn/200
+
+sem1 <- sem1 %>% dplyr::mutate(bc_ipc_tot = case_when(mes == 1 ~ 0.335542051,
+                                                      mes == 2 ~ 0.330249262,
+                                                      mes == 3 ~ 0.327549795,
+                                                      mes == 4 ~ 0.32554687,
+                                                      mes == 5 ~ 0.323919843,
+                                                      mes == 6 ~ 0.322448435))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_ipc_tot = case_when(
+  mes == 7  ~ 0.320314392,
+  mes == 8  ~ 0.318657357,
+  mes == 9  ~ 0.31596912,
+  mes == 10 ~ 0.314515807,
+  mes == 11 ~ 0.31128448,
+  mes == 12 ~ 0.310493463))
+
+
+sem1 <- sem1 %>% dplyr::mutate(bc_ipc = case_when(    mes == 1 ~ 0.329708731,
+                                                      mes == 2 ~ 0.325120854,
+                                                      mes == 3 ~ 0.32193312,
+                                                      mes == 4 ~ 0.320163041,
+                                                      mes == 5 ~ 0.318357918,
+                                                      mes == 6 ~ 0.316774856))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_ipc = case_when(
+  mes == 7 ~  0.314794762,
+  mes == 8 ~  0.31306265,
+  mes == 9 ~  0.310558149,
+  mes == 10 ~ 0.309320866,
+  mes == 11 ~ 0.306270364,
+  mes == 12 ~ 0.305191859))                                                 
+
+
+sem1 <- sem1 %>% dplyr::mutate(ipc_ene2022 = case_when(    mes == 1 ~ 0.941120053,
+                                                           mes == 2 ~ 0.948876194,
+                                                           mes == 3 ~ 0.32193312,
+                                                           mes == 4 ~ 0.959509612,
+                                                           mes == 5 ~ 0.963888078,
+                                                           mes == 6 ~ 0.970309829))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(ipc_ene2022 = case_when(
+  mes == 7 ~  0.97535549,
+  mes == 8 ~  0.983653726,
+  mes == 9 ~  0.988198991,
+  mes == 10 ~ 0.998457112,
+  mes == 11 ~ 1.001000792,
+  mes == 12 ~ 1))                                                 
+
+sem2_panel <- sem2_panel %>% dplyr::mutate(ipc_ene2022 = case_when(
+  mes == 7 ~  0.97535549,
+  mes == 8 ~  0.983653726,
+  mes == 9 ~  0.988198991,
+  mes == 10 ~ 0.998457112,
+  mes == 11 ~ 1.001000792,
+  mes == 12 ~ 1))   
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# Salario en ocupación principal
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(horamen = F85 * 4.3)
+sem1 <- sem1 %>% 
+  dplyr::mutate(yhora = PT2/horamen)
+sem1 <- sem1 %>% 
+  dplyr::mutate(yhoradef = case_when(F85>0 ~ yhora*bc_ipc_tot,
+                                                    F85==0 ~ 0))
+                               
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(horamen = f85 * 4.3)
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(yhora = pt2/horamen)
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(yhoradef = case_when(f85>0 ~ yhora*bc_ipc_tot,
+                                     f85==0 ~ 0))
+
+# Salario por debajo del salario mínimo nacional
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(salario_insuf_smn = ifelse(yhora<smn_h, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(salario_insuf_smn = ifelse(yhora<smn_h, 1, 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de personas ocupadas que perciben ingresos por debajo del salario mínimo nacional
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(salario_insuf_smn, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_implant_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(salario_insuf_smn, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -1743,8 +4253,8 @@ periodo_formatted <- paste(
 ##### Total país, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1777,7 +4287,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1799,7 +4309,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1828,7 +4338,307 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+smn <- 17930
+smn_h = smn/200
+
+sem1 <- sem1 %>% dplyr::mutate(bc_ipc_tot = case_when(mes == 1 ~ 0.335542051,
+                                                      mes == 2 ~ 0.330249262,
+                                                      mes == 3 ~ 0.327549795,
+                                                      mes == 4 ~ 0.32554687,
+                                                      mes == 5 ~ 0.323919843,
+                                                      mes == 6 ~ 0.322448435))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_ipc_tot = case_when(
+  mes == 7  ~ 0.320314392,
+  mes == 8  ~ 0.318657357,
+  mes == 9  ~ 0.31596912,
+  mes == 10 ~ 0.314515807,
+  mes == 11 ~ 0.31128448,
+  mes == 12 ~ 0.310493463))
+
+
+sem1 <- sem1 %>% dplyr::mutate(bc_ipc = case_when(    mes == 1 ~ 0.329708731,
+                                                      mes == 2 ~ 0.325120854,
+                                                      mes == 3 ~ 0.32193312,
+                                                      mes == 4 ~ 0.320163041,
+                                                      mes == 5 ~ 0.318357918,
+                                                      mes == 6 ~ 0.316774856))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(bc_ipc = case_when(
+  mes == 7 ~  0.314794762,
+  mes == 8 ~  0.31306265,
+  mes == 9 ~  0.310558149,
+  mes == 10 ~ 0.309320866,
+  mes == 11 ~ 0.306270364,
+  mes == 12 ~ 0.305191859))                                                 
+
+
+sem1 <- sem1 %>% dplyr::mutate(ipc_ene2022 = case_when(    mes == 1 ~ 0.941120053,
+                                                           mes == 2 ~ 0.948876194,
+                                                           mes == 3 ~ 0.32193312,
+                                                           mes == 4 ~ 0.959509612,
+                                                           mes == 5 ~ 0.963888078,
+                                                           mes == 6 ~ 0.970309829))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(ipc_ene2022 = case_when(
+  mes == 7 ~  0.97535549,
+  mes == 8 ~  0.983653726,
+  mes == 9 ~  0.988198991,
+  mes == 10 ~ 0.998457112,
+  mes == 11 ~ 1.001000792,
+  mes == 12 ~ 1))                                                 
+
+sem2_panel <- sem2_panel %>% dplyr::mutate(ipc_ene2022 = case_when(
+  mes == 7 ~  0.97535549,
+  mes == 8 ~  0.983653726,
+  mes == 9 ~  0.988198991,
+  mes == 10 ~ 0.998457112,
+  mes == 11 ~ 1.001000792,
+  mes == 12 ~ 1))   
+
+# Ocupados
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(ocup = ifelse(pobpcoac==2, 1, 0))
+sem2_panel <- sem2_panel %>% 
+  dplyr::mutate(ocup = ifelse(POBPCOAC==2, 1, 0))
+
+
+# Salario en ocupación principal
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(horamen = F85 * 4.3)
+sem1 <- sem1 %>% 
+  dplyr::mutate(yhora = PT2/horamen)
+sem1 <- sem1 %>% 
+  dplyr::mutate(yhoradef = case_when(F85>0 ~ yhora*bc_ipc_tot,
+                                                    F85==0 ~ 0))
+                               
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(horamen = f85 * 4.3)
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(yhora = pt2/horamen)
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(yhoradef = case_when(f85>0 ~ yhora*bc_ipc_tot,
+                                     f85==0 ~ 0))
+
+# Línea de pobreza individual
+
+sem1 <- sem1 %>% dplyr::mutate(regionlp = case_when(region_4 == 1 ~ 1,
+                                                    region_4 == 2 | region_4 == 3 ~ 2,
+                                                    region_4 == 4 ~ 3))
+
+
+sem1 <- sem1 %>% dplyr::mutate(grupolp = case_when(regionlp == 1 & mes == 1 ~ 1,
+                                                   regionlp == 1 & mes == 2 ~ 2,
+                                                   regionlp == 1 & mes == 3 ~ 3,
+                                                   regionlp == 1 & mes == 4 ~ 4,
+                                                   regionlp == 1 & mes == 5 ~ 5,
+                                                   regionlp == 1 & mes == 6 ~ 6,
+                                                   regionlp == 2 & mes == 1 ~ 7,
+                                                   regionlp == 2 & mes == 2 ~ 8,
+                                                   regionlp == 2 & mes == 3 ~ 9,
+                                                   regionlp == 2 & mes == 4 ~ 10,
+                                                   regionlp == 2 & mes == 5 ~ 11,
+                                                   regionlp == 2 & mes == 6 ~ 12,
+                                                   regionlp == 3 & mes == 1 ~ 13,
+                                                   regionlp == 3 & mes == 2 ~ 14,
+                                                   regionlp == 3 & mes == 3 ~ 15,
+                                                   regionlp == 3 & mes == 4 ~ 16,
+                                                   regionlp == 3 & mes == 5 ~ 17,
+                                                   regionlp == 3 & mes == 6 ~ 18))
+
+sem1_unipersonales <- sem1 %>%  filter(ht19==1)
+sem1_unipersonales <- sem1_unipersonales[,c("numero","grupolp", "lp_06")]
+sem1_unipersonales <- sem1_unipersonales %>% dplyr::mutate(lp_unipersonales = lp_06)
+sem1_unipersonales <- sem1_unipersonales[order(sem1_unipersonales$grupolp, sem1_unipersonales$lp_unipersonales, decreasing = TRUE), ]
+sem1_unipersonales <- sem1_unipersonales %>% distinct(grupolp, .keep_all = TRUE)
+sem1_unipersonales <- sem1_unipersonales[,c("grupolp","lp_unipersonales")]
+
+sem1 <- merge(sem1, sem1_unipersonales, by = "grupolp")
+
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(regionlp = case_when(region_4 == 1 ~ 1,
+                                                                    region_4 == 2 | region_4 == 3 ~ 2,
+                                                                    region_4 == 4 ~ 3))
+
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(grupolp = case_when(regionlp == 1 & mes == 7 ~ 1,
+                                                                   regionlp == 1 & mes == 8 ~ 2,
+                                                                   regionlp == 1 & mes == 9 ~ 3,
+                                                                   regionlp == 1 & mes == 10 ~ 4,
+                                                                   regionlp == 1 & mes == 11 ~ 5,
+                                                                   regionlp == 1 & mes == 12 ~ 6,
+                                                                   regionlp == 2 & mes == 7 ~ 7,
+                                                                   regionlp == 2 & mes == 8 ~ 8,
+                                                                   regionlp == 2 & mes == 9 ~ 9,
+                                                                   regionlp == 2 & mes == 10 ~ 10,
+                                                                   regionlp == 2 & mes == 11 ~ 11,
+                                                                   regionlp == 2 & mes == 12 ~ 12,
+                                                                   regionlp == 3 & mes == 7 ~ 13,
+                                                                   regionlp == 3 & mes == 8 ~ 14,
+                                                                   regionlp == 3 & mes == 9 ~ 15,
+                                                                   regionlp == 3 & mes == 10 ~ 16,
+                                                                   regionlp == 3 & mes == 11 ~ 17,
+                                                                   regionlp == 3 & mes == 12 ~ 18))
+
+sem2_implant_unipersonales <- sem2_implant %>%  filter(ht19==1)
+sem2_implant_unipersonales <- sem2_implant_unipersonales[,c("grupolp", "lp")]
+sem2_implant_unipersonales <- sem2_implant_unipersonales %>% dplyr::mutate(lp_unipersonales = lp)
+sem2_implant_unipersonales <- sem2_implant_unipersonales[order(sem2_implant_unipersonales$grupolp, sem2_implant_unipersonales$lp_unipersonales, decreasing = TRUE), ]
+sem2_implant_unipersonales <- sem2_implant_unipersonales %>% distinct(grupolp, .keep_all = TRUE)
+sem2_implant_unipersonales <- sem2_implant_unipersonales[,c("grupolp","lp_unipersonales")]
+
+sem2_implant <- merge(sem2_implant, sem2_implant_unipersonales, by = "grupolp")
+
+
+
+# Salario por debajo de línea de pobreza
+
+sem1 <- sem1 %>% dplyr::mutate(salario_insuf   = ifelse(PT2 < lp_unipersonales, 1, 0))
+sem2_implant <- sem2_implant %>% dplyr::mutate(salario_insuf = ifelse(pt2 < lp_unipersonales, 1, 0))
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de personas ocupadas que perciben ingresos por debajo de la línea de pobreza
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(salario_insuf, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_implant_svy %>%
+  srvyr::filter(ocup == 1 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(salario_insuf, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -1843,7 +4653,7 @@ cita_formatted <- paste(
 
 <br />
 
-##### **Poder adquisitivo** 
+## **Poder adquisitivo** 
 
 <div style="text-align: justify">
 El índice medio de salarios (IMS) estima los ingresos corrientes de los trabajadores permanentes en relación de dependencia de los sectores público y privado formal de todo el país mientras que el índice de precios al consumo (IPC) es un indicador agregado que estima la variación mensual de los precios de bienes y servicios que consumen los hogares. El ISR, calculado como el cociente entre el IMS y el IPC, permite observar la evolución del poder adquisitivo de los asalariados, por lo que lo convierte en un indicador de referencia para la economía. Aumentos del ISR indican que el poder adquisitivo medio de los asalariados en relación de dependencia aumenta, por lo que en promedio pueden comprar más bienes y servicios que en el período anterior.
@@ -1865,8 +4675,8 @@ periodo_formatted <- paste(
 ##### `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -1895,7 +4705,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -1913,7 +4723,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -1934,7 +4744,8 @@ calc_formatted <- paste(
 > **Forma de cálculo:** `r calc_formatted`
 
 
-##
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -1949,11 +4760,11 @@ cita_formatted <- paste(
 
 <br />
 
-# Tranferencias 
+# **Transferencias** 
 
 <br />
 
-##### **Cobertura de las transferencias contributivas** 
+## **Cobertura de las transferencias contributivas** 
 
 <div style="text-align: justify">
 
@@ -1977,8 +4788,8 @@ periodo_formatted <- paste(
 ##### País urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -2010,7 +4821,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -2030,7 +4841,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -2059,7 +4870,170 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+# Percepción de jubilaciones
+
+sem1 <- sem1 %>% dplyr::mutate(jub = ifelse(G148_1_1 > 0 |
+                                              G148_1_2 > 0 |
+                                              G148_1_3 > 0 |
+                                              G148_1_4 > 0 |
+                                              G148_1_5 > 0 |
+                                              G148_1_6 > 0 |
+                                              G148_1_7 > 0 |
+                                              G148_1_8 > 0 |
+                                              G148_1_9 > 0 |
+                                              G148_1_10 > 0 |
+                                              G148_1_11 > 0, 1, 0))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(jub = ifelse(g148_1_1 > 0 |
+                                                              g148_1_2 > 0 |
+                                                              g148_1_3 > 0 |
+                                                              g148_1_5 > 0 |
+                                                              g148_1_6 > 0 |
+                                                              g148_1_7 > 0 |
+                                                              g148_1_8 > 0 |
+                                                              g148_1_9 > 0 |
+                                                              g148_1_10 > 0 |
+                                                              g148_1_11 > 0, 1, 0)) 
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de mayores de 65 años que perciben jubilación
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(tramo_edad == 5 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(jub, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_implant_svy %>%
+  srvyr::filter(tramo_edad == 5 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(jub, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -2086,8 +5060,8 @@ periodo_formatted <- paste(
 ##### País urbano, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -2119,7 +5093,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -2139,7 +5113,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -2168,7 +5142,170 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+# Percepción de pensiones
+
+sem1 <- sem1 %>% dplyr::mutate(pens = ifelse(G148_2_1 > 0 |
+                                               G148_2_2 > 0 |
+                                               G148_2_3 > 0 |
+                                               G148_2_4 > 0 |
+                                               G148_2_5 > 0 |
+                                               G148_2_6 > 0 |
+                                               G148_2_7 > 0 |
+                                               G148_2_8 > 0 |
+                                               G148_2_9 > 0 |
+                                               G148_2_10 > 0 |
+                                               G148_2_11 > 0, 1, 0))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(pens = ifelse(g148_2_1 > 0 |
+                                                               g148_2_2 > 0 |
+                                                               g148_2_3 > 0 |
+                                                               g148_2_5 > 0 |
+                                                               g148_2_6 > 0 |
+                                                               g148_2_7 > 0 |
+                                                               g148_2_8 > 0 |
+                                                               g148_2_9 > 0 |
+                                                               g148_2_10 > 0 |
+                                                               g148_2_11 > 0, 1, 0))
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de mayores de 65 años que perciben pensión
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(tramo_edad == 5 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(pens, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_implant_svy %>%
+  srvyr::filter(tramo_edad == 5 & (region_4 == 1 | region_4 == 2)) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(pens, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano_pu <- mean(c(a_sem, b_sem))
+c_ano_pu <- as.data.frame(c_ano_pu)
+c_ano_pu <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano_pu <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -2181,29 +5318,9 @@ cita_formatted <- paste(
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <br />
 
-##### **Suficiencia de las transferencias contributivas** 
+## **Suficiencia de las transferencias contributivas** 
 
 <div style="text-align: justify">
 
@@ -2227,8 +5344,8 @@ periodo_formatted <- paste(
 ##### Total país, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -2260,7 +5377,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -2281,7 +5398,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -2310,7 +5427,209 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+smn <- 17930
+smn_h = smn/200
+
+# Percepción de jubilaciones
+
+sem1 <- sem1 %>% dplyr::mutate(jub = ifelse(G148_1_1 > 0 |
+                                              G148_1_2 > 0 |
+                                              G148_1_3 > 0 |
+                                              G148_1_4 > 0 |
+                                              G148_1_5 > 0 |
+                                              G148_1_6 > 0 |
+                                              G148_1_7 > 0 |
+                                              G148_1_8 > 0 |
+                                              G148_1_9 > 0 |
+                                              G148_1_10 > 0 |
+                                              G148_1_11 > 0, 1, 0))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(jub = ifelse(g148_1_1 > 0 |
+                                                              g148_1_2 > 0 |
+                                                              g148_1_3 > 0 |
+                                                              g148_1_5 > 0 |
+                                                              g148_1_6 > 0 |
+                                                              g148_1_7 > 0 |
+                                                              g148_1_8 > 0 |
+                                                              g148_1_9 > 0 |
+                                                              g148_1_10 > 0 |
+                                                              g148_1_11 > 0, 1, 0))
+
+# Ingresos por jubilaciones
+
+sem1 <- sem1 %>% dplyr::mutate(y_jub = G148_1_1 + 
+                                 G148_1_2 + 
+                                 G148_1_3 + 
+                                 G148_1_4 + 
+                                 G148_1_5 + 
+                                 G148_1_6 + 
+                                 G148_1_7 + 
+                                 G148_1_8 + 
+                                 G148_1_9 + 
+                                 G148_1_12 + 
+                                 G148_1_10 + 
+                                 G148_1_11)
+sem2_implant <- sem2_implant %>% dplyr::mutate(y_jub = g148_1_1 +
+                                                 g148_1_2 + 
+                                                 g148_1_3 + 
+                                                 g148_1_5 + 
+                                                 g148_1_6 + 
+                                                 g148_1_7 + 
+                                                 g148_1_8 + 
+                                                 g148_1_9 + 
+                                                 g148_1_12 + 
+                                                 g148_1_10 + 
+                                                 g148_1_11)
+
+# Ingresos por jubilaciones por debajo del salario mínimo nacional
+
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(jub_insuf_smn = ifelse(y_jub < smn, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(jub_insuf_smn = ifelse(y_jub < smn, 1, 0))
+
+
+# Región
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(bd_region = case_when(region_4 == 1 | region_4 == 2 ~ 1,
+                                      region_4 == 3 ~ 2,
+                                      region_4 == 4 ~ 3))
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de personas que perciben jubilaciones por debajo del SMN
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(tramo_edad == 5  %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(pens, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_implant_svy %>%
+  srvyr::filter(tramo_edad == 5  %>%
+  srvyr::summarise(colname = srvyr::survey_mean(pens, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano <- mean(c(a_sem, b_sem))
+c_ano <- as.data.frame(c_ano_pu)
+c_ano <- c_ano_pu %>% dplyr::mutate(aux = 1)
+c_ano <- c_ano_pu %>% dplyr::rename(VALOR = c_ano_pu)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -2339,8 +5658,8 @@ periodo_formatted <- paste(
 ##### Total país, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -2372,7 +5691,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -2392,7 +5711,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -2421,7 +5740,263 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Línea de pobreza individual
+
+sem1 <- sem1 %>% dplyr::mutate(regionlp = case_when(region_4 == 1 ~ 1,
+                                                    region_4 == 2 | region_4 == 3 ~ 2,
+                                                    region_4 == 4 ~ 3))
+
+
+sem1 <- sem1 %>% dplyr::mutate(grupolp = case_when(regionlp == 1 & mes == 1 ~ 1,
+                                                   regionlp == 1 & mes == 2 ~ 2,
+                                                   regionlp == 1 & mes == 3 ~ 3,
+                                                   regionlp == 1 & mes == 4 ~ 4,
+                                                   regionlp == 1 & mes == 5 ~ 5,
+                                                   regionlp == 1 & mes == 6 ~ 6,
+                                                   regionlp == 2 & mes == 1 ~ 7,
+                                                   regionlp == 2 & mes == 2 ~ 8,
+                                                   regionlp == 2 & mes == 3 ~ 9,
+                                                   regionlp == 2 & mes == 4 ~ 10,
+                                                   regionlp == 2 & mes == 5 ~ 11,
+                                                   regionlp == 2 & mes == 6 ~ 12,
+                                                   regionlp == 3 & mes == 1 ~ 13,
+                                                   regionlp == 3 & mes == 2 ~ 14,
+                                                   regionlp == 3 & mes == 3 ~ 15,
+                                                   regionlp == 3 & mes == 4 ~ 16,
+                                                   regionlp == 3 & mes == 5 ~ 17,
+                                                   regionlp == 3 & mes == 6 ~ 18))
+
+sem1_unipersonales <- sem1 %>%  filter(ht19==1)
+sem1_unipersonales <- sem1_unipersonales[,c("numero","grupolp", "lp_06")]
+sem1_unipersonales <- sem1_unipersonales %>% dplyr::mutate(lp_unipersonales = lp_06)
+sem1_unipersonales <- sem1_unipersonales[order(sem1_unipersonales$grupolp, sem1_unipersonales$lp_unipersonales, decreasing = TRUE), ]
+sem1_unipersonales <- sem1_unipersonales %>% distinct(grupolp, .keep_all = TRUE)
+sem1_unipersonales <- sem1_unipersonales[,c("grupolp","lp_unipersonales")]
+
+sem1 <- merge(sem1, sem1_unipersonales, by = "grupolp")
+
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(regionlp = case_when(region_4 == 1 ~ 1,
+                                                                    region_4 == 2 | region_4 == 3 ~ 2,
+                                                                    region_4 == 4 ~ 3))
+
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(grupolp = case_when(regionlp == 1 & mes == 7 ~ 1,
+                                                                   regionlp == 1 & mes == 8 ~ 2,
+                                                                   regionlp == 1 & mes == 9 ~ 3,
+                                                                   regionlp == 1 & mes == 10 ~ 4,
+                                                                   regionlp == 1 & mes == 11 ~ 5,
+                                                                   regionlp == 1 & mes == 12 ~ 6,
+                                                                   regionlp == 2 & mes == 7 ~ 7,
+                                                                   regionlp == 2 & mes == 8 ~ 8,
+                                                                   regionlp == 2 & mes == 9 ~ 9,
+                                                                   regionlp == 2 & mes == 10 ~ 10,
+                                                                   regionlp == 2 & mes == 11 ~ 11,
+                                                                   regionlp == 2 & mes == 12 ~ 12,
+                                                                   regionlp == 3 & mes == 7 ~ 13,
+                                                                   regionlp == 3 & mes == 8 ~ 14,
+                                                                   regionlp == 3 & mes == 9 ~ 15,
+                                                                   regionlp == 3 & mes == 10 ~ 16,
+                                                                   regionlp == 3 & mes == 11 ~ 17,
+                                                                   regionlp == 3 & mes == 12 ~ 18))
+
+sem2_implant_unipersonales <- sem2_implant %>%  filter(ht19==1)
+sem2_implant_unipersonales <- sem2_implant_unipersonales[,c("grupolp", "lp")]
+sem2_implant_unipersonales <- sem2_implant_unipersonales %>% dplyr::mutate(lp_unipersonales = lp)
+sem2_implant_unipersonales <- sem2_implant_unipersonales[order(sem2_implant_unipersonales$grupolp, sem2_implant_unipersonales$lp_unipersonales, decreasing = TRUE), ]
+sem2_implant_unipersonales <- sem2_implant_unipersonales %>% distinct(grupolp, .keep_all = TRUE)
+sem2_implant_unipersonales <- sem2_implant_unipersonales[,c("grupolp","lp_unipersonales")]
+
+sem2_implant <- merge(sem2_implant, sem2_implant_unipersonales, by = "grupolp")
+
+
+# Percepción de jubilaciones
+
+sem1 <- sem1 %>% dplyr::mutate(jub = ifelse(G148_1_1 > 0 |
+                                              G148_1_2 > 0 |
+                                              G148_1_3 > 0 |
+                                              G148_1_4 > 0 |
+                                              G148_1_5 > 0 |
+                                              G148_1_6 > 0 |
+                                              G148_1_7 > 0 |
+                                              G148_1_8 > 0 |
+                                              G148_1_9 > 0 |
+                                              G148_1_10 > 0 |
+                                              G148_1_11 > 0, 1, 0))
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(jub = ifelse(g148_1_1 > 0 |
+                                                              g148_1_2 > 0 |
+                                                              g148_1_3 > 0 |
+                                                              g148_1_5 > 0 |
+                                                              g148_1_6 > 0 |
+                                                              g148_1_7 > 0 |
+                                                              g148_1_8 > 0 |
+                                                              g148_1_9 > 0 |
+                                                              g148_1_10 > 0 |
+                                                              g148_1_11 > 0, 1, 0))
+
+# Ingresos por jubilaciones
+
+sem1 <- sem1 %>% dplyr::mutate(y_jub = G148_1_1 + 
+                                 G148_1_2 + 
+                                 G148_1_3 + 
+                                 G148_1_4 + 
+                                 G148_1_5 + 
+                                 G148_1_6 + 
+                                 G148_1_7 + 
+                                 G148_1_8 + 
+                                 G148_1_9 + 
+                                 G148_1_12 + 
+                                 G148_1_10 + 
+                                 G148_1_11)
+sem2_implant <- sem2_implant %>% dplyr::mutate(y_jub = g148_1_1 +
+                                                 g148_1_2 + 
+                                                 g148_1_3 + 
+                                                 g148_1_5 + 
+                                                 g148_1_6 + 
+                                                 g148_1_7 + 
+                                                 g148_1_8 + 
+                                                 g148_1_9 + 
+                                                 g148_1_12 + 
+                                                 g148_1_10 + 
+                                                 g148_1_11)
+
+
+
+# Ingresos por jubilaciones por debajo de la línea de pobreza
+
+sem1 <- sem1 %>% 
+  dplyr::mutate(jub_insuf = ifelse(y_jub < lp_unipersonales, 1, 0))
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(jub_insuf = ifelse(y_jub < lp_unipersonales, 1, 0)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de personas que perciben jubilaciones por debajo de la línea de pobreza
+
+a_mes <- sem1_svy %>%
+  srvyr::filter(jub == 1) %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(jub_insuf, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+
+b_mes <- sem2_implant_svy %>%
+  srvyr::filter(jub == 1) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(jub_insuf, na.rm=T))
+
+b_sem <- mean(as.numeric(b_mes$colname))
+
+c_ano <- mean(c(a_sem, b_sem))
+c_ano <- as.data.frame(c_ano)
+c_ano <- c_ano %>% dplyr::mutate(aux = 1)
+c_ano <- c_ano %>% dplyr::rename(VALOR = c_ano)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -2435,7 +6010,7 @@ cita_formatted <- paste(
 
 <br />
 
-##### **Cobertura de las transferencias no contributivas** 
+## **Cobertura de las transferencias no contributivas** 
 
 <div style="text-align: justify">
 
@@ -2460,8 +6035,8 @@ periodo_formatted <- paste(
 ##### Total país, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -2494,7 +6069,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -2516,7 +6091,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -2545,7 +6120,191 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+# Captación AFAM
+
+sem1 <- sem1 %>% dplyr::mutate(afam_pe = ifelse((G152 == 1 & F73 != 2 & F92 !=2 ) | 
+                                                  (G150 == 1 & (POBPCOAC %in% c(1, 3, 4, 6, 7, 8, 11) | 
+                                                                  (POBPCOAC == 2 & F82 != 1 & F96 != 1))), 1, 0),   
+                               afam_cont = ifelse(G150 == 1 & afam_pe == 0, 1, 0),
+                               afam_total = ifelse(afam_pe == 1 | afam_cont == 1, 1, 0)) 
+
+sem1_afam <- sem1[,c("numero","afam_pe", "afam_cont", "afam_total")]
+sem1_afam <- sem1_afam %>% dplyr::mutate(h_afam_pe = afam_pe,
+                                         h_afam_cont = afam_cont,
+                                         h_afam_total = afam_total)
+
+sem1_afam_1 <- sem1_afam[order(sem1_afam$numero, sem1_afam$h_afam_pe, decreasing = TRUE), ]
+sem1_afam_2 <- sem1_afam[order(sem1_afam$numero, sem1_afam$h_afam_cont, decreasing = TRUE), ]
+sem1_afam_3 <- sem1_afam[order(sem1_afam$numero, sem1_afam$h_afam_total, decreasing = TRUE), ]
+
+sem1_afam_1 <- sem1_afam_1 %>% distinct(numero, .keep_all = TRUE)
+sem1_afam_2 <- sem1_afam_2 %>% distinct(numero, .keep_all = TRUE)
+sem1_afam_3 <- sem1_afam_3 %>% distinct(numero, .keep_all = TRUE)
+
+sem1_afam_1 <- sem1_afam_1[,c("numero","h_afam_pe")]
+sem1_afam_2 <- sem1_afam_2[,c("numero","h_afam_cont")]
+sem1_afam_3 <- sem1_afam_3[,c("numero","h_afam_total")]
+
+sem1 <- merge(sem1, sem1_afam_1, by = "numero")
+sem1 <- merge(sem1, sem1_afam_2, by = "numero")
+sem1 <- merge(sem1, sem1_afam_3, by = "numero")
+
+
+sem2_implant <- sem2_implant %>% 
+  dplyr::mutate(afam_pe = ifelse((g152 == 1 & f73 != 2 & f92 !=2 ) | 
+                                 (g150 == 1 & (pobpcoac %in% c(1, 3, 4, 6, 7, 8, 11) | 
+                                                 (pobpcoac == 2 & f82 != 1 & f96 != 1))), 1, 0),   
+                                               afam_cont = ifelse(g150 == 1 & afam_pe == 0, 1, 0),
+                                               afam_total = ifelse(afam_pe == 1 | afam_cont == 1, 1, 0)) 
+
+sem2_afam <- sem2_implant[,c("ID","afam_pe", "afam_cont", "afam_total")]
+sem2_afam <- sem2_afam %>% dplyr::mutate(h_afam_pe = afam_pe,
+                                         h_afam_cont = afam_cont,
+                                         h_afam_total = afam_total)
+
+sem2_afam_1 <- sem2_afam[order(sem2_afam$ID, sem2_afam$h_afam_pe, decreasing = TRUE), ]
+sem2_afam_2 <- sem2_afam[order(sem2_afam$ID, sem2_afam$h_afam_cont, decreasing = TRUE), ]
+sem2_afam_3 <- sem2_afam[order(sem2_afam$ID, sem2_afam$h_afam_total, decreasing = TRUE), ]
+
+sem2_afam_1 <- sem2_afam_1 %>% distinct(ID, .keep_all = TRUE)
+sem2_afam_2 <- sem2_afam_2 %>% distinct(ID, .keep_all = TRUE)
+sem2_afam_3 <- sem2_afam_3 %>% distinct(ID, .keep_all = TRUE)
+
+sem2_afam_1 <- sem2_afam_1[,c("ID","h_afam_pe")]
+sem2_afam_2 <- sem2_afam_2[,c("ID","h_afam_cont")]
+sem2_afam_3 <- sem2_afam_3[,c("ID","h_afam_total")]
+
+sem2_implant <- merge(sem2_implant, sem2_afam_1, by = "ID")
+sem2_implant <- merge(sem2_implant, sem2_afam_2, by = "ID")
+sem2_implant <- merge(sem2_implant, sem2_afam_3, by = "ID")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de hogares que perciben AFAM (Solo Plan de Equidad)
+
+
+a_mes <- sem1_h_svy %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(h_afam_pe, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+a_sem <- as.data.frame(a_sem)
+
+b_sem<- sem2_implant_h_svy %>%
+  srvyr::summarise(colname = srvyr::survey_mean(h_afam_pe, na.rm=T))
+
+b_sem<- select(b_sem, colname)
+
+c_ano <- cbind(a_sem, b_sem)
+c_ano <- c_ano %>% dplyr::mutate(VALOR = (a_sem + colname) /2)
+c_ano <- c_ano %>% dplyr::mutate(aux = 1)
+c_ano<- select(c_ano, c(VALOR, aux))
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
+
 
 
 ```{r}
@@ -2574,8 +6333,8 @@ periodo_formatted <- paste(
 ##### Total país, `r periodo_formatted`
 </div>
 
-## {.tabset .tabset-fade .tabset-pills}
-### Gráfico
+### {.tabset .tabset-fade .tabset-pills}
+#### Gráfico
 
 
 ```{r, out.width='100%'}
@@ -2608,7 +6367,7 @@ ggplotly(g1) %>%
 #===============================================================================
 ```
 
-### Descargar Tabla
+#### Tabla
 
 
 ```{r}
@@ -2630,7 +6389,7 @@ DT::datatable(t1, extensions =  'Buttons', options =  list(dom = 'Bfrtip',
 ) 
 ```
 
-### Ficha Técnica
+#### Ficha Técnica
 
 
 ```{r}
@@ -2659,7 +6418,154 @@ nota_formatted <- paste(
 ```
 > **Advertencia:** `r nota_formatted`
 
-##
+#### Código en R
+
+```{r, echo=TRUE, eval=FALSE}
+
+### Estimación de valores 2021 ###
+
+# Para sintaxix de años anteriores consultar: 
+# https://osf.io/dyzg8/files/osfstorage#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de paquetes ###
+
+# Instalar si es necesario:
+#install.packages("rio")
+#install.packages("srvyr")
+#install.packages("tidyverse")
+
+library(rio)
+library(srvyr)
+library(tidyverse)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Descarga bases ECH 2021 (INE) de repositorio UMAD-FCS ###
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65232781fc021200aab6", 
+  destfile = "ECH2021_sem1.Rdata"
+)
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65616946a002027a4652", 
+  destfile = "ECH2021_sem2_implant.Rdata"
+)
+
+
+download.file(
+  url = "https://osf.io/dyzg8/files/osfstorage/63da65276946a001fe7a4630", 
+  destfile = "ECH2021_sem2_panel.Rdata"
+)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Carga de bases ###
+
+sem1          <- rio::import("ECH2021_sem1.Rdata")
+sem2_implant  <- rio::import("ECH2021_sem2_implant.Rdata")
+sem2_panel    <- rio::import("ECH2021_sem2_panel.Rdata")
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+## Generación de nuevas variables ###
+
+
+
+#  Captación TUS
+
+sem1 <- sem1 %>% dplyr::mutate(tus = ifelse(E560==1, 1, 0))
+
+sem1_tus <- sem1[,c("numero","tus")]
+sem1_tus <- sem1_tus %>% dplyr::mutate(h_tus = tus)
+sem1_tus <- sem1_tus[order(sem1_tus$numero, sem1_tus$h_tus, decreasing = TRUE), ]
+sem1_tus <- sem1_tus %>% distinct(numero, .keep_all = TRUE)
+sem1_tus <- sem1_tus[,c("numero","h_tus")]
+sem1 <- merge(sem1, sem1_tus, by = "numero")
+
+
+sem2_implant <- sem2_implant %>% dplyr::mutate(tus = ifelse(e560==1, 1, 0))
+
+sem2_tus <- sem2_implant[,c("ID","tus")]
+sem2_tus <- sem2_tus %>% dplyr::mutate(h_tus = tus)
+sem2_tus <- sem2_tus[order(sem2_tus$ID, sem2_tus$h_tus, decreasing = TRUE), ]
+sem2_tus <- sem2_tus %>% distinct(ID, .keep_all = TRUE)
+sem2_tus <- sem2_tus[,c("ID","h_tus")]
+sem2_implant <- merge(sem2_implant, sem2_tus, by = "ID")
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Bases a nivel hogar ###                               
+
+sem1_h <- sem1 %>% distinct(numero, .keep_all = TRUE)
+sem2_implant_h <- sem2_implant %>% distinct(ID, .keep_all = TRUE)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Información de muestreo ###
+
+sem1 <- sem1 %>% dplyr::mutate(pesosem = pesomen / 6)
+
+
+sem1_svy           <- srvyr::as_survey_design(sem1, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem1_h_svy         <- srvyr::as_survey_design(sem1_h, 
+                                              ids = numero, 
+                                              weights = pesomen)
+
+sem2_implant_svy   <- srvyr::as_survey_design(sem2_implant, 
+                                              ids = ID, 
+                                              weights = w_sem)
+
+sem2_implant_h_svy <- srvyr::as_survey_design(sem2_implant_h, ids = ID, 
+                                              weights = w_sem)
+
+sem2_panel_svy   <-  srvyr::as_survey_design(sem2_panel, 
+                                             ids = ID, 
+                                             weights = w)
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+### Estimación de indicadores ###
+
+
+###  Porcentaje de hogares que perciben TUS
+
+
+a_mes <- sem1_h_svy %>%
+  srvyr::group_by(mes) %>%
+  srvyr::summarise(colname = srvyr::survey_mean(h_tus, na.rm=T))
+
+a_sem <- mean(as.numeric(a_mes$colname))
+a_sem <- as.data.frame(a_sem)
+
+b_sem<- sem2_implant_h_svy %>%
+  srvyr::summarise(colname = srvyr::survey_mean(h_tus, na.rm=T))
+
+b_sem<- select(b_sem, colname)
+
+c_ano <- cbind(a_sem, b_sem)
+c_ano <- c_ano %>% dplyr::mutate(VALOR = (a_sem + colname) /2)
+c_ano <- c_ano %>% dplyr::mutate(aux = 1)
+c_ano<- select(c_ano, c(VALOR, aux))
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+ 
+```
+
+## {.toc-ignore .unlisted .unnumbered}
 
 
 ```{r}
@@ -2670,3 +6576,16 @@ cita_formatted <- paste(
 ```
 `r cita_formatted` 
 
+
+# **Referencias**	
+
+## **Sistema de consultas**
+
+Acceda a nuestro sistema de consultas personalizado de indicadores de empleo, salarios y transferencias en el siguiente [link](https://bancodedatos-fcs.shinyapps.io/app-Empleo-Salarios-Transferencias/).
+
+
+## **Contacto**	
+
+Si tiene consultas, sugerencias, comentarios o encontró algún error en este documento, le agradecemos que se contacte con nosotros/as.
+
+**Contacto: umad@cienciassociales.edu.uy**
