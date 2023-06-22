@@ -99,29 +99,46 @@ periodo_formatted <- paste(
 ```{r, out.width='100%'}
 #===============================================================================
 
-g1 <- 
-  base %>% filter(NOMINDICADOR == "TASA DE ACTIVIDAD", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+dat <- base %>% filter(NOMINDICADOR == "TASA DE ACTIVIDAD", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
-  NOMINDICADOR =="TASA DE ACTIVIDAD" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
+    NOMINDICADOR =="TASA DE ACTIVIDAD" ~ "Urbano (más de 5.000 habitantes)")) %>% 
+  mutate(metodo = case_when(
+    FECHA <= 2019 ~ "Encuesta presencial",
+    TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
+  theme_minimal() +
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
   scale_color_manual(
-      values = c(639)
-    ) +
+    values = c(639)) +
+
+  
   ylim(0, 100) +
   scale_x_continuous(breaks=seq(1990, 2025, 5)) +
-  theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
 
 #===============================================================================
 ```
@@ -267,6 +284,14 @@ cita_formatted <- paste(
 ```
 `r cita_formatted` 
 
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [2,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf` 
+
 <br />
 
 <div style="text-align: center">
@@ -290,30 +315,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
+dat <- 
   base %>% filter(NOMINDICADOR == "TASA DE ACTIVIDAD", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
-  mutate(UNIDAD = case_when(
-  SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 2, color = UNIDAD))+
+  mutate(UNIDAD = case_when(SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres")) %>%
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
+  theme_minimal() +
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
   scale_color_manual(
     values = c(639, "#a1dd70"),
     labels = c("Varones", "Mujeres")
   ) +
+  
   ylim(0, 100) +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
-  theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 ```
 
 #### Tabla
@@ -461,7 +504,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [2,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf` 
 
 
 
@@ -489,27 +538,47 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- base %>% 
+
+dat <- 
+  base %>% 
   filter(NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 14 A 18 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 19 A 24 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 25 A 29 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 30 A 64 AÑOS"|NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 65 AÑOS Y MÁS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)") %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 14 A 18 AÑOS"~ "14 a 18 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 19 A 24 AÑOS"~ "19 a 24 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 25 A 29 AÑOS"~ "25 a 29 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 30 A 64 AÑOS"~ "30 a 64 años", NOMINDICADOR == "TASA DE ACTIVIDAD DE PERSONAS DE 65 AÑOS Y MÁS"~ "65 años y más"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR, color = UNIDAD)) +
-  geom_line(aes(group = 5, color = UNIDAD))+
-  scale_color_manual(
-      values = c(639,"#a1dd70","orangered","lightslategrey","mediumblue")) +
-  ylim(0, 100) +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639,"#a1dd70","orangered","lightslategrey","mediumblue")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
 
 #===============================================================================
 ```
@@ -665,7 +734,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [2,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 <br />
@@ -707,29 +782,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
+
+dat <- 
+   base %>% filter(NOMINDICADOR == "TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   NOMINDICADOR =="TASA DE EMPLEO" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
+  theme_minimal() +
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
   scale_color_manual(
-      values = c(639)
-  ) +
+    values = c(639)) +
+
+  
   ylim(0, 100) +
   scale_x_continuous(breaks=seq(1990, 2025, 5)) +
-  theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
 
 #===============================================================================
 ```
@@ -775,7 +869,7 @@ calc_formatted <- paste(
 > **Forma de cálculo:** `r calc_formatted`
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [3,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -868,7 +962,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [2,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 
 <br />
@@ -895,30 +995,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+dat <- 
+   base %>% filter(NOMINDICADOR == "TASA DE EMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 2, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639, "#a1dd70"),
-    labels = c("Varones", "Mujeres")
-  ) +
-  ylim(0, 100) +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639, "#a1dd70")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 
 #===============================================================================
 ```
@@ -964,7 +1082,7 @@ calc_formatted <- paste(
 > **Forma de cálculo:** `r calc_formatted`
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [3,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -1065,7 +1183,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [3,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 
 <br />
@@ -1105,29 +1229,49 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
+
+dat <- 
+   base %>% filter(NOMINDICADOR == "TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   NOMINDICADOR =="TASA DE DESEMPLEO" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
-  scale_color_manual(
-      values = c(639)
-    ) +
-  ylim(0, 30) +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 
 #===============================================================================
 ```
@@ -1173,7 +1317,7 @@ calc_formatted <- paste(
 > **Forma de cálculo:** `r calc_formatted`
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [4,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -1276,7 +1420,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [4,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 
@@ -1302,30 +1452,49 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+
+dat <- 
+   base %>% filter(NOMINDICADOR == "TASA DE DESEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 2, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639, "#a1dd70"),
-    labels = c("Varones", "Mujeres")
-  ) +
-  ylim(0, 30) +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639, "#a1dd70")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 
 #===============================================================================
 ```
@@ -1371,7 +1540,7 @@ calc_formatted <- paste(
 > **Forma de cálculo:** `r calc_formatted`
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [4,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -1482,7 +1651,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [4,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 
 
@@ -1523,29 +1698,50 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
+
+dat <- 
+   base %>% filter(NOMINDICADOR == "TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   NOMINDICADOR =="TASA DE SUBEMPLEO" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
-  scale_color_manual(
-      values = c(639)
-    ) +
-  ylim(0, 30) +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
+
 
 #===============================================================================
 ```
@@ -1591,7 +1787,7 @@ calc_formatted <- paste(
 > **Forma de cálculo:** `r calc_formatted`
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [5,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -1698,7 +1894,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [5,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 
@@ -1724,30 +1926,49 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+
+dat <- 
+   base %>% filter(NOMINDICADOR == "TASA DE SUBEMPLEO", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 2, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639, "#a1dd70"),
-    labels = c("Varones", "Mujeres")
-  ) +
-  ylim(0, 30) +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639, "#a1dd70")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 
 #===============================================================================
 ```
@@ -1793,7 +2014,7 @@ calc_formatted <- paste(
 > **Forma de cálculo:** `r calc_formatted`
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [5,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -1904,7 +2125,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [6,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 <br />
@@ -1940,30 +2167,47 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
+
+dat <- 
   base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
   mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>%   mutate(UNIDAD = case_when(
   NOMINDICADOR =="PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
-  scale_color_manual(
-      values = c(639)
-    ) +
-  ylim(0, 50) +
-  scale_x_continuous(breaks=seq(2000, 2022, 2), limits=c(2000,2022))  +
-  theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
 
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
+  theme_minimal() +
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
  
+  scale_color_manual(
+    values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
 
 
 
@@ -2012,7 +2256,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [6,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -2114,7 +2358,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [6,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 
@@ -2140,30 +2390,49 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+
+dat <- 
+   base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
   mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>% 
   mutate(UNIDAD = case_when(
   SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 2, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639, "#a1dd70"),
-    labels = c("Varones", "Mujeres")
-  ) +
-  ylim(0, 50) +
-  scale_x_continuous(breaks=seq(2000, 2022, 2), limits=c(2000,2022))  +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+   values = c(639, "#a1dd70")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 
 #===============================================================================
 ```
@@ -2210,7 +2479,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [6,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -2316,7 +2585,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [6,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 
 <br />
@@ -2348,31 +2623,35 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(base$NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS", URBANORURALUY == "TOTAL PAÍS", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
+dat <- base %>% filter(base$NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"|base$NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS", URBANORURALUY == "TOTAL PAÍS", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
-  mutate(UNIDAD = case_when(
-  NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"~"Sin restricciones",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"~"Subempleo",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"~"Subempleo y no registro", NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS"~"No registro"))  %>%
-    mutate(UNIDAD = factor(UNIDAD, levels = c("Subempleo y no registro", "Subempleo", "No registro","Sin restricciones")))  %>%
-  ggplot(aes(x = FECHA, y = VALOR, fill=UNIDAD)) +
-  geom_bar(stat="identity", width=0.6)+
+  mutate(FECHA = as.numeric(FECHA)) %>% 
+    mutate(UNIDAD = case_when(
+    NOMINDICADOR == "PORCENTAJE DE PERSONAS OCUPADAS SIN RESTRICCIONES AL EMPLEO"~"Sin restricciones",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS SUBEMPLEADAS"~"Subempleo",NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS Y SUBEMPLEADAS"~"Subempleo y no registro", NOMINDICADOR=="PORCENTAJE DE PERSONAS OCUPADAS NO REGISTRADAS"~"No registro"))  %>%
+  mutate(UNIDAD = factor(UNIDAD, levels = c("Subempleo y no registro", "Subempleo", "No registro","Sin restricciones")))  %>%
+  mutate(metodo = case_when(FECHA<=2019 ~ "pre", FECHA==2020 ~ "2020", FECHA==2021~ "2021", FECHA>=2022~ "post")) 
+  
+  
+ggplot(dat, aes(x = FECHA, y = VALOR, fill=UNIDAD, alpha=metodo)) +
+  geom_bar(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, stat="identity", alpha = 0.4, show.legend = FALSE) +
+  geom_bar(dat = dat %>% filter(FECHA > 2019),
+           size = 2, stat="identity", alpha = 0.8) +
   scale_fill_manual(
     values = c("darkorange", "grey60",639,"#a1dd70"),
   ) +
-#  ylim(0, 100) +
+  scale_alpha_manual(values = c(.8, .8, .8, .3))+
   guides(fill = guide_legend(title = ""))+
   scale_x_continuous(breaks=seq(2006, 2022, 1)) +
   theme_minimal() +
+  theme(legend.position = "bottom") +
   labs(
     color = "",
     title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
+    caption = "",
     x = "",
     y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  ) 
 
 #===============================================================================
 ```
@@ -2421,7 +2700,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [11,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -2555,7 +2834,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [11,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 <br />
@@ -2592,29 +2877,50 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "INGRESO POR HORA PROMEDIO EN OCUPACIÓN PRINCIPAL (DEF. BASE 2010)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
+
+  
+  dat <- 
+    base %>% filter(NOMINDICADOR == "INGRESO POR HORA PROMEDIO EN OCUPACIÓN PRINCIPAL (DEF. BASE 2010)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
   mutate(UNIDAD = case_when(
   NOMINDICADOR =="INGRESO POR HORA PROMEDIO EN OCUPACIÓN PRINCIPAL (DEF. BASE 2010)" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = as.numeric(VALOR))) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
-  scale_color_manual(
-      values = c(639)
-    ) +
-  scale_x_continuous(breaks=seq(2000, 2022, 2), limits=c(2000,2022))  +
-  ylim (0,120) +
-  theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
+  mutate(metodo = case_when(
+                  as.numeric(FECHA) <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
 
-  ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+
+g1 <- ggplot(dat, aes(x = FECHA, y = as.numeric(VALOR), alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
+  theme_minimal() +
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+   values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
+  
 
 #===============================================================================
 ```
@@ -2660,7 +2966,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [12,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -2774,7 +3080,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [12,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 
 <br />
@@ -2808,29 +3120,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DEL SMN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
+
+  dat <- 
+   base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DEL SMN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   NOMINDICADOR =="PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DEL SMN" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
-  scale_color_manual(
-      values = c(639)
-    ) +
-  ylim(0,60) +
-  scale_x_continuous(breaks=seq(2000, 2022, 2), limits=c(2000,2022))  +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+   values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
 
 #===============================================================================
 ```
@@ -2877,7 +3208,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [13,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -2996,7 +3327,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [13,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 <br />
 
 
@@ -3020,30 +3357,49 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DE LA LÍNEA DE POBREZA", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0) %>%
+
+  dat <- 
+    base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS QUE PERCIBEN UN INGRESO POR DEBAJO DE LA LÍNEA DE POBREZA", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
   mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 4, color = UNIDAD))+
- scale_color_manual(
-    values = c(639, "#a1dd70","orangered","lightslategrey"),
-      ) +
-  ylim(0, 75) +
-  scale_x_continuous(breaks=seq(2006, 2021, 2)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639, "#a1dd70","orangered","lightslategrey")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
 
 #===============================================================================
 ```
@@ -3092,7 +3448,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [14,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -3273,7 +3629,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [14,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 
 <br />
@@ -3313,29 +3675,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN JUBILACIÓN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
+
+  dat <- 
+   base %>% filter(NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN JUBILACIÓN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   NOMINDICADOR =="PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN JUBILACIÓN" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
-  scale_color_manual(
-      values = c(639)
-    ) +
-  ylim(0, 100) +
-  scale_x_continuous(breaks=seq(1992, 2021, 4)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
 
 #===============================================================================
 ```
@@ -3382,7 +3763,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [22,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -3480,7 +3861,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [22,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 <br />
 
 <div style="text-align: center">
@@ -3503,29 +3890,49 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN PENSIÓN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
+
+  dat <- 
+    base %>% filter(NOMINDICADOR == "PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN PENSIÓN", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", edad == 0, pobr == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   NOMINDICADOR =="PORCENTAJE DE MAYORES DE 65 AÑOS QUE PERCIBEN PENSIÓN" ~ "Urbano (más de 5.000 habitantes)"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 1, color = UNIDAD)) +
-  scale_color_manual(
-      values = c(639)
-    ) +
-  ylim(0, 75) +
-  scale_x_continuous(breaks=seq(1992, 2021, 4)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 
 #===============================================================================
 ```
@@ -3572,7 +3979,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [23,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -3671,7 +4078,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [23,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 
 <br />
@@ -3706,29 +4119,50 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DEL SALARIO MÍNIMO NACIONAL", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0) %>%
+
+
+  dat <- 
+    base %>% filter(NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DEL SALARIO MÍNIMO NACIONAL", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   URBANORURALUY == "TOTAL PAÍS"~"Total pais"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 4, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639),
-      ) +
-  ylim(0, 100) +
-  scale_x_continuous(breaks=seq(2006, 2022, 2)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
+
 
 #===============================================================================
 ```
@@ -3776,7 +4210,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [27,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -3898,7 +4332,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [27,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 
@@ -3923,29 +4363,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DE LA LÍNEA DE POBREZA", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0) %>%
+
+  dat <- 
+base %>% filter(NOMINDICADOR == "PORCENTAJE PERSONAS QUE PERCIBEN JUBILACIONES POR DEBAJO DE LA LÍNEA DE POBREZA", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 4, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639),
-      ) +
-  ylim(0, 75) +
-  scale_x_continuous(breaks=seq(2006, 2022, 2)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639)) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
+
 
 #===============================================================================
 ```
@@ -3992,7 +4451,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [25,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -4169,7 +4628,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [25,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 
@@ -4204,30 +4669,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN ASIGNACIONES FAMILIARES (SOLO PLAN DE EQUIDAD)", SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0, sjef == 0) %>%
+
+  dat <- 
+base %>% filter(NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN ASIGNACIONES FAMILIARES (SOLO PLAN DE EQUIDAD)", SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0, sjef == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
   mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 4, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639, "#a1dd70","orangered","lightslategrey"),
-      ) +
-  ylim(0, 40) +
-  scale_x_continuous(breaks=seq(2009, 2022, 1)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639, "#a1dd70","orangered","lightslategrey")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
 
 #===============================================================================
 ```
@@ -4276,7 +4759,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [31,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -4397,7 +4880,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [30,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 <br />
 
@@ -4422,30 +4911,48 @@ periodo_formatted <- paste(
 
 ```{r, out.width='100%'}
 #===============================================================================
-g1 <- 
-  base %>% filter(NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN TARJETA URUGUAY SOCIAL", SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0, sjef == 0) %>%
+
+  dat <- 
+base %>% filter(NOMINDICADOR == "PORCENTAJE DE HOGARES QUE PERCIBEN TARJETA URUGUAY SOCIAL", SEXO == "TODOS"|is.na(SEXO)==T, ASCENDENCIA == "TODOS"|is.na(ASCENDENCIA)==T, `QUINTIL DE INGRESO` == "TODOS", URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"|URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"|URBANORURALUY == "RURAL DISPERSO"|URBANORURALUY == "TOTAL PAÍS", edad == 0, pobr == 0, sjef == 0) %>%
   mutate(VALOR = round(as.numeric(VALOR)*100,1)) %>% 
   mutate(UNIDAD = case_when(
   URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"~"Urbano (Menos de 5.000 habitantes)", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"~"Urbano (Más de 5.000 habitantes)",URBANORURALUY == "RURAL DISPERSO"~ "Rural disperso", URBANORURALUY == "TOTAL PAÍS"~"Total país"))  %>%
   mutate(UNIDAD = factor(UNIDAD, levels = c("Urbano (Menos de 5.000 habitantes)", "Urbano (Más de 5.000 habitantes)", "Rural disperso", "Total país")))  %>%
-  ggplot(aes(x = FECHA, y = VALOR)) +
-  geom_line(aes(group = 4, color = UNIDAD))+
-  scale_color_manual(
-    values = c(639, "#a1dd70","orangered","lightslategrey"),
-      ) +
-  ylim(0, 20) +
-  scale_x_continuous(breaks=seq(2015, 2022, 1)) +
+  mutate(metodo = case_when(
+                  FECHA <= 2019 ~ "Encuesta presencial",
+                  TRUE ~ "Panel telefónico"))
+
+
+g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
+  
+  geom_line(dat = dat %>% filter(FECHA <= 2019),
+            size = 1, alpha = 0.4) +
+  
+  geom_point(size = 2, show.legend = FALSE) +
+  
   theme_minimal() +
-  labs(
-    color = "",
-    title = "",
-    caption = "Unidad de Métodos y Acceso a Datos (UMAD)",
-    x = "",
-    y = ""
-  )
-ggplotly(g1) %>% 
-  config(displayModeBar = F) %>%
-  layout(margin = list(b = 100), legend = list(x = 0.5, y = -0.1,orientation = "h", xanchor = "center" )) 
+  
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  
+  scale_alpha_manual(values = c(.4, .8)) +
+ 
+  scale_color_manual(
+    values = c(639, "#a1dd70","orangered","lightslategrey")) +
+
+  
+  ylim(0, 100) +
+  scale_x_continuous(breaks=seq(1990, 2025, 5)) +
+
+labs(
+  color = "",
+  alpha = "",
+  title = "",
+  caption = "",
+  x = "",
+  y = "")
+
+print(g1)
 
 #===============================================================================
 ```
@@ -4494,7 +5001,7 @@ calc_formatted <- paste(
 
 
 ```{r}
-nota <- strsplit(paste0(base_fichas [2,"Nota"])," ")[[1]]
+nota <- strsplit(paste0(base_fichas [32,"Nota"])," ")[[1]]
 nota_formatted <- paste(
   text_spec(nota, color = 1, font_size = 16, align = "justify"),
   collapse = " ")
@@ -4603,7 +5110,13 @@ cita_formatted <- paste(
   collapse = " ")
 ```
 `r cita_formatted` 
-
+```{r}
+nota <- strsplit(paste0("Nota: ", base_fichas [32,"Nota_graf"])," ")[[1]]
+nota_graf <- paste(
+  text_spec(nota, color = 1, font_size = 12, align = 2),
+  collapse = " ")
+```
+`r nota_graf`
 
 # **Referencias**	
 
