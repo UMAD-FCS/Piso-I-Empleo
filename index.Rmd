@@ -35,7 +35,7 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(rio))
 
 
-base        <- rio::import("Data/Base_motor_empleo_15062023.xlsx")
+base        <- rio::import("Data/Base_motor_empleo_03052024.xlsx")
 base_fichas <- readxl::read_excel("Data/Base_Fichas_Técnicas.xls")
 base_fichas <- base_fichas[order(base_fichas$ID),]
 
@@ -112,6 +112,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -329,6 +332,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -340,7 +346,7 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
  
   scale_color_manual(
     values = c(639, "#a1dd70"),
-    labels = c("Varones", "Mujeres")
+    labels = c("Mujeres", "Varones")
   ) +
   
   ylim(0, 100) +
@@ -553,6 +559,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -798,6 +807,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -1009,6 +1021,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -1245,6 +1260,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -1467,6 +1485,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -1714,6 +1735,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+ geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -1941,6 +1965,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -2182,6 +2209,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -2405,6 +2435,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -2642,7 +2675,7 @@ ggplot(dat, aes(x = FECHA, y = VALOR, fill=UNIDAD, alpha=metodo)) +
   ) +
   scale_alpha_manual(values = c(.8, .8, .8, .3))+
   guides(fill = guide_legend(title = ""))+
-  scale_x_continuous(breaks=seq(2006, 2022, 1)) +
+  scale_x_continuous(breaks=seq(2006, 2023, 1)) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   labs(
@@ -2893,6 +2926,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = as.numeric(VALOR), alpha = metodo, color = 
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -3136,6 +3172,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -3373,6 +3412,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -3691,6 +3733,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -3905,6 +3950,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -4135,6 +4183,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -4378,6 +4429,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
@@ -4686,6 +4740,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
   
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
+  
   geom_point(size = 2, show.legend = FALSE) +
   
   theme_minimal() +
@@ -4927,6 +4984,9 @@ g1 <- ggplot(dat, aes(x = FECHA, y = VALOR, alpha = metodo, color = UNIDAD)) +
   
   geom_line(dat = dat %>% filter(FECHA <= 2019),
             size = 1, alpha = 0.4) +
+  
+  geom_line(dat = dat %>% filter(FECHA >= 2022),
+            size = 1, alpha = 0.8) +
   
   geom_point(size = 2, show.legend = FALSE) +
   
