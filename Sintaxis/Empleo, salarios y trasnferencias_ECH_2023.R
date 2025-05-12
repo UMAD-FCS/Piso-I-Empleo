@@ -18,7 +18,7 @@ library(statar)
 
 PAIS        <- "URUGUAY"	
 FECHA       <- 2023
-FECHA2      <- "01/01/2022"
+FECHA2      <- "01/01/2023"
 RESPONSABLE	<- "JIMENA PANDOLFI"
 JERARQUIA	<- ""
 SECTORPRODUCTIVO	<- ""	
@@ -6662,20 +6662,20 @@ rio::export(piso_1, "Base_motor_empleo_03052024.xlsx")
 
 ## Piso II
 
-Empleo_2022 <- rio::import("Empleo_2022.xlsx")
-baseweb   <- rio::import("Base Motor_Empleo-Salarios-Transferencias_30052023_web.xlsx") # Base descargada de drive compartido con economía
+Empleo_2023 <- rio::import("Empleo_2023.xlsx")
+baseweb   <- rio::import("Base Motor_Empleo-Salarios-Transferencias_29.04.2024_web.xlsx") # Base descargada de drive compartido con economía
 
 
 # Cambia nombres de indicadores de mayúscula a minúscula
 
-Empleo_2022$NOMINDICADOR <- casefold(Empleo_2022$NOMINDICADOR, upper = FALSE) 
+Empleo_2023$NOMINDICADOR <- casefold(Empleo_2023$NOMINDICADOR, upper = FALSE) 
 
 
-aux <- as.data.frame(substr(Empleo_2022$NOMINDICADOR, start = 1, stop = 1))
+aux <- as.data.frame(substr(Empleo_2023$NOMINDICADOR, start = 1, stop = 1))
 names (aux) = "V1"
 aux$V1 <- casefold(aux$V1, upper = TRUE) 
 
-aux2 <- as.data.frame(substr(Empleo_2022$NOMINDICADOR, start = 2, stop = 100000000))
+aux2 <- as.data.frame(substr(Empleo_2023$NOMINDICADOR, start = 2, stop = 100000000))
 names (aux2) = "V2"
 
 aux3 <- cbind(aux,aux2)
@@ -6689,30 +6689,30 @@ aux3 <- aux3   %>%  mutate(NOMINDICADOR_2 = case_when (NOMINDICADOR_2 == "Distri
 aux3 <- select(aux3, NOMINDICADOR_2)
 
 
-Empleo_2022 <- cbind(Empleo_2022,aux3)
-Empleo_2022 <- select(Empleo_2022, -NOMINDICADOR)
-Empleo_2022 <- rename(Empleo_2022, NOMINDICADOR = NOMINDICADOR_2)
+Empleo_2023 <- cbind(Empleo_2023,aux3)
+Empleo_2023 <- select(Empleo_2023, -NOMINDICADOR)
+Empleo_2023 <- rename(Empleo_2023, NOMINDICADOR = NOMINDICADOR_2)
 
 
 # Cambia formato de fechas
 
-Empleo_2022$FECHA_REC <- as.Date(paste0(Empleo_2022$FECHA,"-01-01"),tryFormats = "%Y-%m-%d")
+Empleo_2023$FECHA_REC <- as.Date(paste0(Empleo_2023$FECHA,"-01-01"),tryFormats = "%Y-%m-%d")
 
 
 # Cambia criterio de variable URBANORURALUY
 
-Empleo_2022 <- Empleo_2022  %>% mutate(URBANORURALUY = case_when(URBANORURALUY == "TODOS" ~ "TOTAL PAÍS",
+Empleo_2023 <- Empleo_2023  %>% mutate(URBANORURALUY = case_when(URBANORURALUY == "TODOS" ~ "TOTAL PAÍS",
                                                            TRUE ~ URBANORURALUY))
 
 
-Empleo_2022 <- Empleo_2022  %>% mutate(REGIÓN_original = URBANORURALUY)
-Empleo_2022 <- Empleo_2022  %>% mutate(URB_TOT = case_when(URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"  ~ "U",
+Empleo_2023 <- Empleo_2023  %>% mutate(REGIÓN_original = URBANORURALUY)
+Empleo_2023 <- Empleo_2023  %>% mutate(URB_TOT = case_when(URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)"  ~ "U",
                                                      TRUE ~ "T"))
 
 
 # Genera variable para identificar variable de corte
 
-Empleo_2022 <- Empleo_2022  %>% mutate(CORTE = case_when(SEXO == "VARONES" | SEXO == "MUJERES" ~ "SEXO",
+Empleo_2023 <- Empleo_2023  %>% mutate(CORTE = case_when(SEXO == "VARONES" | SEXO == "MUJERES" ~ "SEXO",
                                                          ASCENDENCIA == "AFRO" | ASCENDENCIA == "NO AFRO" ~ " ASCENDENCIA",
                                                          QUINTIL  == "QUINTIL 1" | 
                                                          QUINTIL  == "QUINTIL 2" |
@@ -6728,20 +6728,20 @@ Empleo_2022 <- Empleo_2022  %>% mutate(CORTE = case_when(SEXO == "VARONES" | SEX
 
 
 
-Empleo_2022 <- Empleo_2022  %>% mutate(CORTE = case_when(CORTE == "TOTAL" & URBANORURALUY == "TOTAL PAÍS" ~ "REGIÓN",                                                   
+Empleo_2023 <- Empleo_2023  %>% mutate(CORTE = case_when(CORTE == "TOTAL" & URBANORURALUY == "TOTAL PAÍS" ~ "REGIÓN",                                                   
                                                    TRUE ~ CORTE))
 
 
 # Cambia criterio de variables de corte
 
-Empleo_2022 <- Empleo_2022  %>% mutate(SEXO = case_when(SEXO == "TODOS" ~ "", 
+Empleo_2023 <- Empleo_2023  %>% mutate(SEXO = case_when(SEXO == "TODOS" ~ "", 
                                                         TRUE ~ SEXO), 
                                        ASCENDENCIA = case_when(ASCENDENCIA == "TODOS" ~ "", 
                                                          TRUE ~ ASCENDENCIA), 
                                        QUINTIL = case_when(QUINTIL == "TODOS" ~ "", 
                                                                   TRUE ~ QUINTIL))
 
-Empleo_2022 <- Empleo_2022  %>% mutate(REGIÓN = case_when(URBANORURALUY == "RURAL DISPERSO"  ~ "RURAL DISPERSO",
+Empleo_2023 <- Empleo_2023  %>% mutate(REGIÓN = case_when(URBANORURALUY == "RURAL DISPERSO"  ~ "RURAL DISPERSO",
                                                           URBANORURALUY == "URBANO (MENOS DE 5.000 HABITANTES)"  ~ "URBANO (MENOS DE 5.000 HABITANTES)",
                                                           CORTE == "REGIÓN" & URBANORURALUY == "TOTAL PAÍS" ~ "TOTAL PAÍS",
                                                           TRUE ~ ""))
@@ -6751,17 +6751,17 @@ Empleo_2022 <- Empleo_2022  %>% mutate(REGIÓN = case_when(URBANORURALUY == "RUR
 # Genera vairable JERARQUIA para visualización de gráficos
 
 
-Empleo_2022 <- Empleo_2022  %>% mutate(JERARQUÍA = ifelse(SEXO == "" & ASCENDENCIA == "" & QUINTIL == "" & EDAD == "" & SITUACION_HOGAR == "" & 
+Empleo_2023 <- Empleo_2023  %>% mutate(JERARQUÍA = ifelse(SEXO == "" & ASCENDENCIA == "" & QUINTIL == "" & EDAD == "" & SITUACION_HOGAR == "" & 
                                                       (REGIÓN == "" | REGIÓN == "TOTAL PAÍS"), 1, 0),
                                        JERARQUIA_CAT = 1)
 
-Empleo_2022 <- Empleo_2022  %>% mutate(JERARQUÍA = ifelse(is.na(JERARQUÍA), 1, 0))
+Empleo_2023 <- Empleo_2023  %>% mutate(JERARQUÍA = ifelse(is.na(JERARQUÍA), 1, 0))
 
 
 
 # Genera vectores vacíos para las variables de economía
 
-Empleo_2022 <- Empleo_2022  %>% mutate(CORTE_2 = "",
+Empleo_2023 <- Empleo_2023  %>% mutate(CORTE_2 = "",
                                  CORTE_3 = "",
                                  FRECUENCIA = "", 
                                  SECTOR_PRODUCTIVO = "",
@@ -6776,36 +6776,36 @@ Empleo_2022 <- Empleo_2022  %>% mutate(CORTE_2 = "",
 
 # Duplica totales para que aparezcan en gráficos
 
-duplicacion <- Empleo_2022 %>% filter(CORTE == "REGIÓN" & REGIÓN == "TOTAL PAÍS")
+duplicacion <- Empleo_2023 %>% filter(CORTE == "REGIÓN" & REGIÓN == "TOTAL PAÍS")
 duplicacion <- duplicacion %>% mutate(CORTE =  "TOTAL", 
                                       REGIÓN = "")
 
 
-Empleo_2022 <- rbind(Empleo_2022, duplicacion)
+Empleo_2023 <- rbind(Empleo_2023, duplicacion)
 
 
 # Ordena base final
 
-Empleo_2022 <- subset(Empleo_2022, select=c(CODIND,	NOMINDICADOR, PAIS, FECHA, FECHA_REC, VALOR, RESPONSABLE, JERARQUÍA, JERARQUIA_CAT, CORTE, CORTE_2, CORTE_3, FRECUENCIA,
+Empleo_2023 <- subset(Empleo_2023, select=c(CODIND,	NOMINDICADOR, PAIS, FECHA, FECHA_REC, VALOR, RESPONSABLE, JERARQUÍA, JERARQUIA_CAT, CORTE, CORTE_2, CORTE_3, FRECUENCIA,
                                       SEXO_JEFE, RESTRICCIONES_AL_EMPLEO, RAMA_DE_ACTIVIDAD, TIPO_DE_OCUPACION,  CATEGORÍOCUP, SITUACION_HOGAR, 
                                       SEXO,	ASCENDENCIA,	QUINTIL, DEPARTAMENTO, URB_TOT, REGIÓN, REGIÓN_original, SECTOR_PRODUCTIVO, SECTOR_INSTITUCIONAL,
                                       ACTIVIDADES_ECONÓMICAS, DIVISIÓN_ECONÓMICA, `SECTOR PÚBLICO`, CONCEPTO, RELACIÓN_FAMILIAR, EDAD))
 
-rio::export(Empleo_2022, "prueba.xlsx")
+rio::export(Empleo_2023, "prueba.xlsx")
 
 
 # Realiza pequeños ajustes en nombres de variables (luego de chequear orden correcto)
 
 names <-names(baseweb)
-names (Empleo_2022) = names
+names (Empleo_2023) = names
 
-baseweb_2022 <- rbind(baseweb, Empleo_2022)
+baseweb_2023 <- rbind(baseweb, Empleo_2023)
 
 
 
 # Corrección de corte urbano-rural para web
 
-urbano  <- Empleo_2022 %>% filter(CORTE == "TOTAL" & REGIÓN_original == "URBANO (MÁS DE 5.000 HABITANTES)")
+urbano  <- Empleo_2023 %>% filter(CORTE == "TOTAL" & REGIÓN_original == "URBANO (MÁS DE 5.000 HABITANTES)")
 
 urbano <- urbano  %>% mutate(CORTE = "REGIÓN",
                              REGIÓN = "URBANO (MÁS DE 5.000 HABITANTES)",
@@ -6818,26 +6818,26 @@ urbano <- subset(urbano, select=c(CODIND,	NOMINDICADOR, PAÍS, FECHA, FECHA_REC,
                                   ACTIVIDADES_ECONÓMICAS, DIVISIÓN_ECONÓMICA, `SECTOR PÚBLICO`, CONCEPTO, RELACIÓN_FAMILIAR, EDAD))
 
 
-baseweb_2022 <- rbind(baseweb_2022, urbano)
+baseweb_2023 <- rbind(baseweb_2023, urbano)
 
 
 # Se eliminan algunas filas que no se suben a la web
 
 
-baseweb_2022 <- baseweb_2022 %>% mutate(filtro = ifelse(FECHA == 2022 & CORTE == "REGIÓN" & (CODIND == 317 | 
+baseweb_2023 <- baseweb_2023 %>% mutate(filtro = ifelse(FECHA == 2022 & CORTE == "REGIÓN" & (CODIND == 317 | 
                                                                                                CODIND == 319 | 
                                                                                                CODIND == 320 | 
                                                                                                CODIND == 318), 1, 0))
 
-baseweb_2022 <- baseweb_2022 %>%  subset(filtro == 0)
-baseweb_2022 <- select(baseweb_2022, -filtro)
+baseweb_2023 <- baseweb_2023 %>%  subset(filtro == 0)
+baseweb_2023 <- select(baseweb_2023, -filtro)
 
 
 
 # Exporta base final para subir a Drive
 
 
-rio::export(baseweb_2022, "Empleo_2022_piso II_16062023.xlsx")
+rio::export(baseweb_2023, "Empleo_2023_piso II_06052024.xlsx")
 
 
 
