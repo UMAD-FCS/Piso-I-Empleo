@@ -35,7 +35,7 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(rio))
 
 
-base        <- rio::import("Data/Base_motor_empleo_03052024.xlsx")
+base        <- rio::import("Data/Base_motor_empleo_13052025.xlsx")
 base_fichas <- readxl::read_excel("Data/Base_Fichas_Técnicas.xls")
 base_fichas <- base_fichas[order(base_fichas$ID),]
 
@@ -2197,7 +2197,7 @@ periodo_formatted <- paste(
 
 dat <- 
   base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
-  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>%   mutate(UNIDAD = case_when(
+  mutate(VALOR = round((as.numeric(VALOR))*100,1)) %>%   mutate(UNIDAD = case_when(
   NOMINDICADOR =="PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL" ~ "Urbano (más de 5.000 habitantes)"))  %>%
   mutate(metodo = case_when(
                   FECHA <= 2019 ~ "Encuesta presencial",
@@ -2252,7 +2252,7 @@ t1 <-
   base %>% 
   filter(NOMINDICADOR =="PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
   SEXO == "TODOS", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS", edad == 0) %>%
-  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>%
+  mutate(VALOR = round((as.numeric(VALOR))*100,1)) %>%
   rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
   rename(ANIO = FECHA)
 t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","ANIO","VALOR")]
@@ -2423,7 +2423,7 @@ periodo_formatted <- paste(
 
 dat <- 
    base %>% filter(NOMINDICADOR == "PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", SEXO == "VARONES"|SEXO=="MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
-  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>% 
+  mutate(VALOR = round((as.numeric(VALOR))*100,1)) %>% 
   mutate(UNIDAD = case_when(
   SEXO =="VARONES" ~ "Varones", SEXO == "MUJERES" ~ "Mujeres"))  %>%
   mutate(metodo = case_when(
@@ -2478,7 +2478,7 @@ t1 <-
   base %>% 
   filter(NOMINDICADOR =="PORCENTAJE DE OCUPADOS NO REGISTRADOS EN SEGURIDAD SOCIAL EN OCUPACIÓN PRINCIPAL", URBANORURALUY == "URBANO (MÁS DE 5.000 HABITANTES)", 
   SEXO == "VARONES"|SEXO == "MUJERES", ASCENDENCIA == "TODOS", `QUINTIL DE INGRESO` == "TODOS") %>%
-  mutate(VALOR = round((1-as.numeric(VALOR))*100,1)) %>%
+  mutate(VALOR = round((as.numeric(VALOR))*100,1)) %>%
   rename(UNIDAD_GEOGRÁFICA = URBANORURALUY) %>%
   rename(ANIO = FECHA)
 t1 <- t1 [,c("NOMINDICADOR","PAÍS","UNIDAD_GEOGRÁFICA","SEXO","ANIO","VALOR")]
@@ -2675,7 +2675,7 @@ ggplot(dat, aes(x = FECHA, y = VALOR, fill=UNIDAD, alpha=metodo)) +
   ) +
   scale_alpha_manual(values = c(.8, .8, .8, .3))+
   guides(fill = guide_legend(title = ""))+
-  scale_x_continuous(breaks=seq(2006, 2023, 1)) +
+  scale_x_continuous(breaks=seq(2006, 2024, 1)) +
   theme_minimal() +
   theme(legend.position = "bottom") +
   labs(
